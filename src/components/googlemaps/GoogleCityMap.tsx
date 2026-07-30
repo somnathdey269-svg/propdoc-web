@@ -166,10 +166,13 @@ export const GoogleCityMapContent: React.FC<GoogleCityMapProps> = ({
         setDrillLocality(activeLocality);
         setLevel('projects');
       }
-    } else if (!activeLocality || activeLocality === 'All Localities') {
-      // If project selected externally, jump to property level
+    } else if (!activeLocality || activeLocality === 'All Localities' || activeLocality === '') {
       if (selectedProject) {
         setLevel('property');
+      } else {
+        setLevel('zones');
+        setActiveZone(null);
+        setDrillLocality('');
       }
     }
   }, [activeLocality, selectedProject]);

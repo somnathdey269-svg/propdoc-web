@@ -80,7 +80,17 @@ export const UserPortal: React.FC<UserPortalProps> = () => {
 
   const handleResetCamera = () => {
     setSelectedProject(null);
-    setFilters((prev) => ({ ...prev, locality: '', query: '' }));
+    setFilters({
+      query: '',
+      locality: 'All Localities',
+      category: '',
+      listingType: 'Sale',
+      priceMetric: 'total',
+      priceMin: 0,
+      priceMax: 100000000,
+      bhk: '',
+      isBankAuctionOnly: false
+    });
   };
 
   // Dedicated Full-Screen Showcase Page (Only when user clicks Showcase in preview card!)
