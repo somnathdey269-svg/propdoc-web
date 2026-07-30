@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { PropertyProject, SearchFilters, TimeOfDay } from '../types';
 import { INITIAL_PROJECTS } from '../data/ahmedabadData';
+import { seedSupabaseDatabase } from '../lib/seedDatabase';
 import { City3DCanvas } from '../components/3d/City3DCanvas';
 import { HeaderNav } from '../components/ui/HeaderNav';
 import type { HeaderTheme } from '../components/ui/HeaderNav';
@@ -20,6 +21,15 @@ export const UserPortal: React.FC<UserPortalProps> = () => {
   const [selectedProject, setSelectedProject] = useState<PropertyProject | null>(null);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('midday');
   const [headerTheme, setHeaderTheme] = useState<HeaderTheme>('midnight');
+
+  // Automatic Background Supabase Synchronization
+  useEffect(() => {
+    seedSupabaseDatabase().then((res) => {
+      if (res?.success) {
+        console.log(`✅ Supabase Database Auto-Synced! (${res.localitiesCount} Localities, ${res.projectsCount} Projects)`);
+      }
+    });
+  }, []);
 
   // Map Controls State
   const [mapType, setMapType] = useState<'roadmap' | 'hybrid' | 'terrain'>('hybrid');

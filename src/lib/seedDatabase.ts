@@ -47,7 +47,7 @@ export async function seedSupabaseDatabase() {
     const authenticProjects = generateAuthenticProperties();
     const projectEntries = authenticProjects.map((p) => ({
       name: p.name,
-      developer: p.developer.name,
+      developer: p.builder?.name || 'Top Developer',
       locality_name: p.locality,
       city: p.city,
       category: p.category,
@@ -58,7 +58,7 @@ export async function seedSupabaseDatabase() {
       valuation_tier: p.valuationTier || 'at-avg',
       is_bank_auction: p.isBankAuction || false,
       is_featured: p.isFeatured || false,
-      rera_id: p.reraRegistrationNumber,
+      rera_id: p.reraNumber,
       cover_image: p.coverImage,
       latitude: p.coordinates.lat,
       longitude: p.coordinates.lng,
