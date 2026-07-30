@@ -76,7 +76,14 @@ ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portal_pricing ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read localities" ON public.localities;
 CREATE POLICY "Allow public read localities" ON public.localities FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read projects" ON public.projects;
 CREATE POLICY "Allow public read projects" ON public.projects FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read portal_pricing" ON public.portal_pricing;
 CREATE POLICY "Allow public read portal_pricing" ON public.portal_pricing FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public insert leads" ON public.leads;
 CREATE POLICY "Allow public insert leads" ON public.leads FOR INSERT WITH CHECK (true);
