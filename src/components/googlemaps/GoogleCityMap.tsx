@@ -96,26 +96,37 @@ const MapCameraController: React.FC<{
   activeZone: Zone | null;
   activeLocality: string;
   selectedProject: PropertyProject | null;
-}> = ({ level, activeZone, activeLocality, selectedProject }) => {
+  projects: PropertyProject[];
+}> = ({ level, activeZone, activeLocality, selectedProject, projects }) => {
   const map = useMap();
 
   useEffect(() => {
     if (!map) return;
 
     if (level === 'zones') {
-      map.panTo({ lat: 23.0600, lng: 72.5800 });
-      map.setZoom(10.5);
+      map.panTo({ lat: 23.0550, lng: 72.5650 });
+      map.setZoom(10.8);
     } else if (level === 'localities' && activeZone) {
       map.panTo({ lat: activeZone.lat, lng: activeZone.lng });
       map.setZoom(activeZone.zoom);
     } else if (level === 'projects' && activeLocality) {
-      // Find a project in this locality for coords
-      map.setZoom(14.5);
+      const q = activeLocality.toLowerCase().trim();
+      const locProjects = projects.filter(
+        p => p.locality.toLowerCase().includes(q) || q.includes(p.locality.toLowerCase())
+      );
+      if (locProjects.length > 0) {
+        const avgLat = locProjects.reduce((sum, p) => sum + p.coordinates.lat, 0) / locProjects.length;
+        const avgLng = locProjects.reduce((sum, p) => sum + p.coordinates.lng, 0) / locProjects.length;
+        map.panTo({ lat: avgLat, lng: avgLng });
+      } else if (activeZone) {
+        map.panTo({ lat: activeZone.lat, lng: activeZone.lng });
+      }
+      map.setZoom(15.0);
     } else if (level === 'property' && selectedProject) {
       map.panTo({ lat: selectedProject.coordinates.lat, lng: selectedProject.coordinates.lng });
-      map.setZoom(16.5);
+      map.setZoom(16.8);
     }
-  }, [map, level, activeZone, activeLocality, selectedProject]);
+  }, [map, level, activeZone, activeLocality, selectedProject, projects]);
 
   return null;
 };
@@ -262,7 +273,7 @@ export const GoogleCityMapContent: React.FC<GoogleCityMapProps> = ({
         internalUsageAttributionIds={['gmp_git_agentskills_v1']}
         className="w-full h-full"
       >
-        <MapCameraController level={level} activeZone={activeZone} activeLocality={drillLocality} selectedProject={selectedProject} />
+        <MapCameraController level={level} activeZone={activeZone} activeLocality={drillLocality} selectedProject={selectedProject} projects={projects} />
 
         {/* ─── LEVEL 0: 4 ZONE PILLARS ─────────────────────────────────────── */}
         {level === 'zones' && ZONES.map((zone) => {
