@@ -87,3 +87,123 @@ CREATE POLICY "Allow public read portal_pricing" ON public.portal_pricing FOR SE
 
 DROP POLICY IF EXISTS "Allow public insert leads" ON public.leads;
 CREATE POLICY "Allow public insert leads" ON public.leads FOR INSERT WITH CHECK (true);
+
+-- 5. DYNAMIC SCRAPER CONFIGURATIONS (Zero-Code Dynamic Selectors & City Scope)
+CREATE TABLE IF NOT EXISTS public.scraper_configs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    portal_name VARCHAR(100) UNIQUE NOT NULL, -- gujrera, 99acres, magicbricks, squareyards
+    display_name VARCHAR(100) NOT NULL,
+    search_url_template TEXT NOT NULL,
+    target_cities JSONB DEFAULT '["Ahmedabad", "Gandhinagar"]'::jsonb,
+    target_localities JSONB DEFAULT '["Gota", "Bodaldev", "Science City", "Bopal", "Sargasan", "GIFT City"]'::jsonb,
+    primary_selectors JSONB NOT NULL,
+    fallback_selectors JSONB NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 6. SCRAPER JOBS & SCHEDULER QUEUE
+CREATE TABLE IF NOT EXISTS public.scraper_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    portal_name VARCHAR(100) NOT NULL,
+    job_type VARCHAR(50) DEFAULT 'MANUAL', -- MANUAL, CRON, SINGLE_PROJECT
+    status VARCHAR(50) DEFAULT 'QUEUED', -- QUEUED, RUNNING, COMPLETED, FAILED
+    scheduled_cron VARCHAR(100) DEFAULT '0 2 * * 0', -- Default Sunday 2 AM
+    total_items INT DEFAULT 0,
+    updated_items INT DEFAULT 0,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 7. SCRAPER EXECUTION LOGS
+CREATE TABLE IF NOT EXISTS public.scraper_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_id UUID REFERENCES public.scraper_jobs(id) ON DELETE CASCADE,
+    level VARCHAR(20) DEFAULT 'INFO', -- INFO, WARN, ERROR, SUCCESS
+    message TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 8. PENDING MATCH REVIEW QUEUE (HUMAN-IN-THE-LOOP APPROVAL)
+CREATE TABLE IF NOT EXISTS public.match_review_queue (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+    portal_name VARCHAR(100) NOT NULL,
+    candidate_name VARCHAR(255) NOT NULL,
+    candidate_price_inr NUMERIC(14, 2) NOT NULL,
+    candidate_url TEXT,
+    confidence_score NUMERIC(5, 2) NOT NULL, -- e.g. 78.50%
+    status VARCHAR(50) DEFAULT 'PENDING', -- PENDING, APPROVED, REJECTED
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Seed Default Scraper Configs for GujRERA & 3 Major Listing Portals
+INSERT INTO public.scraper_configs (portal_name, display_name, search_url_template, primary_selectors, fallback_selectors)
+VALUES 
+(
+  'gujrera', 
+  'GujRERA Regulatory Registry', 
+  'https://gujrera.gujarat.gov.in/projectSearch.do',
+  '{"table": "#GridView1", "row": "tr.gridRow", "rera_no": "td:nth-child(1)", "project_name": "td:nth-child(2)", "promoter": "td:nth-child(3)"}'::jsonb,
+  '{"json_ld": "script[type=\"application/ld+json\"]", "regex_rera": "PR/GJ/[A-Z0-9/]+"}'::jsonb
+),
+(
+  '99acres', 
+  '99acres Commercial & Residential', 
+  'https://www.99acres.com/api/v2/search/property/in/{city}',
+  '{"card": ".projectTuple", "title": ".projectTuple__projectName", "price": ".projectTuple__price", "rera_no": "[data-rera-id]"}'::jsonb,
+  '{"api_endpoint": "https://www.99acres.com/api/v2/search/", "json_ld": "script[type=\"application/ld+json\"]"}'::jsonb
+),
+(
+  'magicbricks', 
+  'MagicBricks Real Estate', 
+  'https://www.magicbricks.com/new-projects-in-{city}',
+  '{"card": ".projcard", "title": ".projcard__title", "price": ".projcard__price", "locality": ".projcard__locality"}'::jsonb,
+  '{"json_ld": "script[type=\"application/ld+json\"]", "price_regex": "₹\\s*([0-9.]+\\s*(Lakh|Cr|L))"}'::jsonb
+),
+(
+  'squareyards', 
+  'SquareYards Marketplace', 
+  'https://www.squareyards.com/new-projects-in-{city}',
+  '{"card": ".projectCard", "title": ".projectCardTitle", "price": ".projectCardPrice"}'::jsonb,
+  '{"json_ld": "script[type=\"application/ld+json\"]", "price_regex": "([0-9.]+\\s*L|Cr)"}'::jsonb
+)
+ON CONFLICT (portal_name) DO UPDATE SET 
+  display_name = EXCLUDED.display_name,
+  search_url_template = EXCLUDED.search_url_template;
+
+-- RLS Security Policies for Superadmin & Scraper Tables
+ALTER TABLE public.scraper_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scraper_jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scraper_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.match_review_queue ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public read scraper_configs" ON public.scraper_configs;
+CREATE POLICY "Allow public read scraper_configs" ON public.scraper_configs FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read scraper_jobs" ON public.scraper_jobs;
+CREATE POLICY "Allow public read scraper_jobs" ON public.scraper_jobs FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read scraper_logs" ON public.scraper_logs;
+CREATE POLICY "Allow public read scraper_logs" ON public.scraper_logs FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read match_review_queue" ON public.match_review_queue;
+CREATE POLICY "Allow public read match_review_queue" ON public.match_review_queue FOR SELECT USING (true);
+
+-- Write/Modify policies restricted to Superadmin OR service key
+DROP POLICY IF EXISTS "Superadmin write scraper_configs" ON public.scraper_configs;
+CREATE POLICY "Superadmin write scraper_configs" ON public.scraper_configs FOR ALL USING (
+  auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
+);
+
+DROP POLICY IF EXISTS "Superadmin write scraper_jobs" ON public.scraper_jobs;
+CREATE POLICY "Superadmin write scraper_jobs" ON public.scraper_jobs FOR ALL USING (
+  auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
+);
+
+DROP POLICY IF EXISTS "Superadmin write match_review_queue" ON public.match_review_queue;
+CREATE POLICY "Superadmin write match_review_queue" ON public.match_review_queue FOR ALL USING (
+  auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
+);
+

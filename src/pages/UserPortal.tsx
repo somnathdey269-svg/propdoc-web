@@ -12,11 +12,7 @@ import { MobileBottomSheet } from '../components/ui/MobileBottomSheet';
 import { PropertyPreviewCard } from '../components/ui/PropertyPreviewCard';
 import { MessageSquare, Plus, Minus, Eye, Home } from 'lucide-react';
 
-interface UserPortalProps {
-  onNavigateToBuilder?: () => void;
-}
-
-export const UserPortal: React.FC<UserPortalProps> = () => {
+export const UserPortal: React.FC = () => {
   const [projects] = useState<PropertyProject[]>(INITIAL_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<PropertyProject | null>(null);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('midday');
