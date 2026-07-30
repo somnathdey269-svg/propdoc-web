@@ -55,7 +55,7 @@ export const UserPortal: React.FC<UserPortalProps> = () => {
   // Filtered Projects across 50,000+ Ahmedabad District & Gandhinagar properties
   const filteredProjects = useMemo(() => {
     return projects.filter((proj) => {
-      if (filters.locality && proj.locality !== filters.locality) return false;
+      if (filters.locality && filters.locality !== 'All Localities' && proj.locality !== filters.locality) return false;
       if (filters.category && proj.category !== filters.category) return false;
 
       if (filters.query) {
@@ -82,7 +82,7 @@ export const UserPortal: React.FC<UserPortalProps> = () => {
     setSelectedProject(null);
     setFilters({
       query: '',
-      locality: 'All Localities',
+      locality: '',
       category: '',
       listingType: 'Sale',
       priceMetric: 'total',
