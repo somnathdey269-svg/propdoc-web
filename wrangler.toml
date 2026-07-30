@@ -1,4 +1,5 @@
 name = "propdoc-web"
+main = "workers-site/index.js"
 compatibility_date = "2026-07-30"
 
 [site]
