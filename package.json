@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "cd frontend && npm install --legacy-peer-deps && npm run build && mkdir -p ../dist && rm -rf ../dist/* && cp -r dist/frontend/browser/* ../dist/",
+    "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
