@@ -91,8 +91,9 @@ CREATE POLICY "Allow public insert leads" ON public.leads FOR INSERT WITH CHECK 
 -- 5. DYNAMIC SCRAPER CONFIGURATIONS (Zero-Code Dynamic Selectors & City Scope)
 CREATE TABLE IF NOT EXISTS public.scraper_configs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    portal_name VARCHAR(100) UNIQUE NOT NULL, -- gujrera, 99acres, magicbricks, squareyards
+    portal_name VARCHAR(100) UNIQUE NOT NULL, -- gujrera, 99acres, magicbricks, squareyards, maharera, etc.
     display_name VARCHAR(100) NOT NULL,
+    source_role VARCHAR(20) DEFAULT 'SECONDARY', -- PRIMARY (Master Registry), SECONDARY (Marketplace Matcher)
     search_url_template TEXT NOT NULL,
     target_cities JSONB DEFAULT '["Ahmedabad", "Gandhinagar"]'::jsonb,
     target_localities JSONB DEFAULT '["Gota", "Bodaldev", "Science City", "Bopal", "Sargasan", "GIFT City"]'::jsonb,
@@ -107,7 +108,7 @@ CREATE TABLE IF NOT EXISTS public.scraper_jobs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     portal_name VARCHAR(100) NOT NULL,
     job_type VARCHAR(50) DEFAULT 'MANUAL', -- MANUAL, CRON, SINGLE_PROJECT
-    status VARCHAR(50) DEFAULT 'QUEUED', -- QUEUED, RUNNING, COMPLETED, FAILED
+    status VARCHAR(50) DEFAULT 'QUEUED', -- QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED
     scheduled_cron VARCHAR(100) DEFAULT '0 2 * * 0', -- Default Sunday 2 AM
     total_items INT DEFAULT 0,
     updated_items INT DEFAULT 0,
@@ -138,39 +139,44 @@ CREATE TABLE IF NOT EXISTS public.match_review_queue (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Seed Default Scraper Configs for GujRERA & 3 Major Listing Portals
-INSERT INTO public.scraper_configs (portal_name, display_name, search_url_template, primary_selectors, fallback_selectors)
+-- Seed Default Scraper Configs for Primary Govt Registry & Secondary Listing Portals
+INSERT INTO public.scraper_configs (portal_name, display_name, source_role, search_url_template, primary_selectors, fallback_selectors)
 VALUES 
 (
   'gujrera', 
-  'GujRERA Regulatory Registry', 
+  'GujRERA Gujarat Registry',
+  'PRIMARY', 
   'https://gujrera.gujarat.gov.in/projectSearch.do',
   '{"table": "#GridView1", "row": "tr.gridRow", "rera_no": "td:nth-child(1)", "project_name": "td:nth-child(2)", "promoter": "td:nth-child(3)"}'::jsonb,
   '{"json_ld": "script[type=\"application/ld+json\"]", "regex_rera": "PR/GJ/[A-Z0-9/]+"}'::jsonb
 ),
 (
   '99acres', 
-  '99acres Commercial & Residential', 
+  '99acres Real Estate',
+  'SECONDARY', 
   'https://www.99acres.com/api/v2/search/property/in/{city}',
   '{"card": ".projectTuple", "title": ".projectTuple__projectName", "price": ".projectTuple__price", "rera_no": "[data-rera-id]"}'::jsonb,
   '{"api_endpoint": "https://www.99acres.com/api/v2/search/", "json_ld": "script[type=\"application/ld+json\"]"}'::jsonb
 ),
 (
   'magicbricks', 
-  'MagicBricks Real Estate', 
+  'MagicBricks Marketplace',
+  'SECONDARY', 
   'https://www.magicbricks.com/new-projects-in-{city}',
   '{"card": ".projcard", "title": ".projcard__title", "price": ".projcard__price", "locality": ".projcard__locality"}'::jsonb,
   '{"json_ld": "script[type=\"application/ld+json\"]", "price_regex": "₹\\s*([0-9.]+\\s*(Lakh|Cr|L))"}'::jsonb
 ),
 (
   'squareyards', 
-  'SquareYards Marketplace', 
+  'SquareYards Property',
+  'SECONDARY', 
   'https://www.squareyards.com/new-projects-in-{city}',
   '{"card": ".projectCard", "title": ".projectCardTitle", "price": ".projectCardPrice"}'::jsonb,
   '{"json_ld": "script[type=\"application/ld+json\"]", "price_regex": "([0-9.]+\\s*L|Cr)"}'::jsonb
 )
 ON CONFLICT (portal_name) DO UPDATE SET 
   display_name = EXCLUDED.display_name,
+  source_role = EXCLUDED.source_role,
   search_url_template = EXCLUDED.search_url_template;
 
 -- RLS Security Policies for Superadmin & Scraper Tables

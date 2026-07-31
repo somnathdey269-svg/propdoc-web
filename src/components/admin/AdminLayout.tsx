@@ -4,19 +4,20 @@ import {
   Cpu, 
   Settings, 
   GitMerge, 
-  GitBranch,
+  Globe,
   BarChart3, 
   LogOut, 
   Lock, 
   Key, 
   Mail, 
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react';
-import ScraperControlPanel from './ScraperControlPanel';
+import SimpleScraperAssistant from './SimpleScraperAssistant';
+import WebsiteSourcesManager from './WebsiteSourcesManager';
 import ScraperConfigEditor from './ScraperConfigEditor';
 import MatchReviewQueue from './MatchReviewQueue';
 import PortalPriceMatrix from './PortalPriceMatrix';
-import AdaptivePipelineManager from './AdaptivePipelineManager';
 
 const SUPERADMIN_EMAIL = 'somnathdey269@gmail.com';
 const SUPERADMIN_PASS = 'Deevarsh@190521';
@@ -35,7 +36,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
   const [authError, setAuthError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'control' | 'pipeline' | 'config' | 'queue' | 'matrix'>('control');
+  const [activeTab, setActiveTab] = useState<'assistant' | 'sources' | 'config' | 'queue' | 'matrix'>('assistant');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +69,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white tracking-tight">Superadmin Gateway</h2>
-              <p className="text-xs text-slate-400">UrbanX Ahmedabad & Gandhinagar Intelligence</p>
+              <p className="text-xs text-slate-400">UrbanX Real Estate Intelligence Dashboard</p>
             </div>
           </div>
 
@@ -138,7 +139,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
       <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Top Navigation Header */}
-      <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/80 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-gradient-to-tr from-indigo-500 to-cyan-400 rounded-xl text-white shadow-md shadow-indigo-500/20">
             <Cpu className="w-6 h-6" />
@@ -150,65 +151,65 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
                 <Sparkles className="w-3 h-3" /> Live Engine Active
               </span>
             </div>
-            <p className="text-xs text-slate-400">GujRERA + 4-Portal Real Estate Scraper & Intelligence Suite</p>
+            <p className="text-xs text-slate-400">Easy Real Estate Web Scraper & Price Comparison Suite</p>
           </div>
         </div>
 
-        {/* Tab Switcher */}
+        {/* Plain-English Navigation Tabs */}
         <nav className="flex items-center gap-1 bg-slate-950/80 border border-slate-800 p-1 rounded-2xl">
           <button
-            onClick={() => setActiveTab('control')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeTab === 'control'
+            onClick={() => setActiveTab('assistant')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'assistant'
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Cpu className="w-3.5 h-3.5" /> Scraper Control Panel
+            <Zap className="w-3.5 h-3.5 text-cyan-400" /> Easy Scraper Assistant
           </button>
 
           <button
-            onClick={() => setActiveTab('pipeline')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeTab === 'pipeline'
+            onClick={() => setActiveTab('sources')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+              activeTab === 'sources'
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <GitBranch className="w-3.5 h-3.5" /> Adaptive Pipeline
+            <Globe className="w-3.5 h-3.5 text-amber-400" /> Manage Website Sources
           </button>
 
           <button
             onClick={() => setActiveTab('config')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
               activeTab === 'config'
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Settings className="w-3.5 h-3.5" /> Dynamic Configs
+            <Settings className="w-3.5 h-3.5" /> Selector Configs
           </button>
 
           <button
             onClick={() => setActiveTab('queue')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
               activeTab === 'queue'
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <GitMerge className="w-3.5 h-3.5" /> Match Queue
+            <GitMerge className="w-3.5 h-3.5" /> Review Matches
           </button>
 
           <button
             onClick={() => setActiveTab('matrix')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
               activeTab === 'matrix'
                 ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5" /> Pricing Matrix
+            <BarChart3 className="w-3.5 h-3.5" /> Price Comparison Matrix
           </button>
         </nav>
 
@@ -240,8 +241,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
 
       {/* Main Content Body */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {activeTab === 'control' && <ScraperControlPanel />}
-        {activeTab === 'pipeline' && <AdaptivePipelineManager />}
+        {activeTab === 'assistant' && <SimpleScraperAssistant />}
+        {activeTab === 'sources' && <WebsiteSourcesManager />}
         {activeTab === 'config' && <ScraperConfigEditor />}
         {activeTab === 'queue' && <MatchReviewQueue />}
         {activeTab === 'matrix' && <PortalPriceMatrix />}
