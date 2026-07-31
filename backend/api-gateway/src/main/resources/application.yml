@@ -1,0 +1,94 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "https://*.pages.dev"       # Cloudflare Pages preview URLs
+              - "${FRONTEND_URL:http://localhost:4200}"
+            allowedMethods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"]
+            allowedHeaders: ["*"]
+            allowCredentials: true
+            maxAge: 3600
+
+      routes:
+        # Identity Service
+        - id: identity-service
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/identity/**
+
+        # Organization Service
+        - id: organization-service
+          uri: ${ORGANIZATION_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/org/**
+
+        # Scraper Config Service
+        - id: scraper-config-service
+          uri: ${SCRAPER_CONFIG_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/scraper/**
+
+        # Execution Engine
+        - id: execution-engine
+          uri: ${EXECUTION_ENGINE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/execution/**
+
+        # Browser Service (internal only)
+        - id: browser-service
+          uri: ${BROWSER_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/browser/**
+
+        # Data Pipeline Service
+        - id: data-pipeline-service
+          uri: ${DATA_PIPELINE_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/data/**
+
+        # Scheduler Service
+        - id: scheduler-service
+          uri: ${SCHEDULER_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/scheduler/**
+
+        # Workflow Service
+        - id: workflow-service
+          uri: ${WORKFLOW_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/workflows/**
+
+        # Health checks — public
+        - id: actuator-public
+          uri: lb://api-gateway
+          predicates:
+            - Path=/health,/actuator/health
+
+# Supabase JWT secret for validation
+supabase:
+  jwt:
+    secret: ${SUPABASE_JWT_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.dataacq: DEBUG
+    org.springframework.cloud.gateway: INFO

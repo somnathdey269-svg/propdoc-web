@@ -1,0 +1,47 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: execution-engine
+
+  datasource:
+    url: ${SUPABASE_JDBC_URL}
+    username: ${SUPABASE_DB_USER:postgres}
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+supabase:
+  jwt:
+    secret: ${SUPABASE_JWT_SECRET}
+
+# Execution engine thread pool config
+execution:
+  thread-pool:
+    core-size: 10
+    max-size: 50
+    queue-capacity: 200
+    thread-name-prefix: "exec-worker-"
+
+  # Browser service connection
+  browser-service-url: ${BROWSER_SERVICE_URL:http://localhost:8085}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+logging:
+  level:
+    com.dataacq: DEBUG

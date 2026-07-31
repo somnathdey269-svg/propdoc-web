@@ -1,0 +1,17 @@
+/**
+ * common-events — Spring ApplicationEvent-based domain event contracts.
+ *
+ * No Kafka dependency. Events are published in-process via
+ * ApplicationEventPublisher and consumed via @EventListener.
+ *
+ * When the platform grows to multi-service async scale, the event
+ * classes here can be serialized and published to Kafka/Upstash
+ * without changing any producer or consumer code — just swap the
+ * EventPublisher implementation.
+ */
+dependencies {
+    implementation project(':common-libs:common-domain')
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}

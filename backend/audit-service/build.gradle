@@ -1,0 +1,14 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':common-libs:common-domain')
+    implementation project(':common-libs:common-security')
+    implementation project(':common-libs:common-events')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'org.postgresql:postgresql'
+}

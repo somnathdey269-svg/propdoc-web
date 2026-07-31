@@ -1,0 +1,23 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':common-libs:common-domain')
+    implementation project(':common-libs:common-security')
+    implementation project(':common-libs:common-events')
+    implementation project(':scraper-config-service')
+    implementation project(':data-pipeline-service')
+    implementation project(':browser-service')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation "com.microsoft.playwright:playwright:${playwrightVersion}"
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+}

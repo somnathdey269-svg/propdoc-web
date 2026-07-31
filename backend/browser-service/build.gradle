@@ -1,0 +1,12 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':common-libs:common-domain')
+    implementation project(':common-libs:common-security')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // Playwright for Java
+    implementation "com.microsoft.playwright:playwright:${playwrightVersion}"
+}

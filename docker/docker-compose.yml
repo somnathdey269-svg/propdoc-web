@@ -1,0 +1,115 @@
+version: '3.9'
+
+# ============================================================
+# Enterprise Data Acquisition Platform — Local Dev Stack
+# Usage: docker-compose up -d
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────
+  # KAFKA + ZOOKEEPER (Event Bus)
+  # ──────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: dataacq-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: dataacq-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: dataacq-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: dataacq-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
+  # ──────────────────────────────────────
+  # REDIS (Cache + Rate Limiting)
+  # ──────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: dataacq-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass local_redis_password
+    volumes:
+      - redis_data:/data
+
+  # ──────────────────────────────────────
+  # LOCAL POSTGRESQL (Dev mirror of Supabase)
+  # For local development without hitting Supabase cloud
+  # ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: dataacq-postgres
+    environment:
+      POSTGRES_DB: dataacq_dev
+      POSTGRES_USER: dataacq
+      POSTGRES_PASSWORD: local_pg_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./supabase/migrations/v2_enterprise_platform.sql:/docker-entrypoint-initdb.d/02_v2_migration.sql
+
+  # ──────────────────────────────────────
+  # KAFKA TOPIC INITIALIZER
+  # ──────────────────────────────────────
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: dataacq-kafka-init
+    depends_on:
+      - kafka
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka...' &&
+        sleep 15 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.execution.jobs --replication-factor 1 --partitions 3 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.execution.steps --replication-factor 1 --partitions 3 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.schedule.triggers --replication-factor 1 --partitions 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.data.extracted --replication-factor 1 --partitions 3 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.data.stored --replication-factor 1 --partitions 3 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.scraper.config --replication-factor 1 --partitions 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.user.events --replication-factor 1 --partitions 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic dataacq.audit.log --replication-factor 1 --partitions 1 &&
+        echo 'All Kafka topics created!'
+      "
+
+volumes:
+  zookeeper_data:
+  kafka_data:
+  redis_data:
+  postgres_data:
+
+networks:
+  default:
+    name: dataacq-network

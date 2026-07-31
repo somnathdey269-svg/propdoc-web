@@ -1,0 +1,19 @@
+rootProject.name = 'data-acquisition-platform'
+
+// Common Libraries
+include 'common-libs:common-domain'
+include 'common-libs:common-security'
+include 'common-libs:common-events'
+
+// Microservices
+include 'api-gateway'
+include 'identity-service'
+include 'organization-service'
+include 'scraper-config-service'
+include 'execution-engine'
+include 'browser-service'
+include 'data-pipeline-service'
+include 'scheduler-service'
+include 'workflow-service'
+include 'notification-service'
+include 'audit-service'
