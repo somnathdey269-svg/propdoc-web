@@ -16,8 +16,7 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
-  Menu,
-  AlertTriangle
+  Menu
 } from 'lucide-react';
 import SimpleScraperAssistant from './SimpleScraperAssistant';
 import WebsiteSourcesManager from './WebsiteSourcesManager';
@@ -49,9 +48,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     return (localStorage.getItem('urbanx_admin_theme') as 'dark' | 'light') || 'dark';
   });
 
-  // Logout / Exit Confirmation Modals
+  // Logout Confirmation Modal
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
-  const [showExitModal, setShowExitModal] = useState<boolean>(false);
 
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<'assistant' | 'sources' | 'config' | 'queue' | 'matrix'>('assistant');
@@ -79,10 +77,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     localStorage.removeItem('urbanx_superadmin_auth');
     setIsAuthenticated(false);
     setShowLogoutModal(false);
-  };
-
-  const confirmExit = () => {
-    setShowExitModal(false);
     if (onClose) onClose();
   };
 
@@ -231,24 +225,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
           <button
             onClick={() => setShowLogoutModal(true)}
             title="Logout"
-            className={`p-2.5 rounded-xl border transition-colors ${
+            className={`p-2.5 rounded-xl border transition-colors flex items-center gap-2 text-xs font-bold ${
               isDark
                 ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/30'
                 : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-300'
             }`}
           >
             <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
-
-          {/* Exit Admin Button */}
-          {onClose && (
-            <button
-              onClick={() => setShowExitModal(true)}
-              className="px-3.5 py-2 bg-indigo-600/15 border border-indigo-500/30 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-600/25 transition-colors"
-            >
-              Exit Admin
-            </button>
-          )}
         </div>
       </header>
 
@@ -359,39 +344,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
                 className="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-700 rounded-xl text-xs font-bold text-white shadow-lg shadow-rose-600/30 transition-all"
               >
                 Confirm Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* EXIT ADMIN CONFIRMATION POPUP MODAL */}
-      {showExitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xl p-4">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-white">Exit Admin Portal?</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Do you want to exit the Superadmin control panel and return to the main platform?
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={() => setShowExitModal(false)}
-                className="w-1/2 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
-              >
-                Stay Here
-              </button>
-              <button
-                onClick={confirmExit}
-                className="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all"
-              >
-                Exit to Platform
               </button>
             </div>
           </div>
