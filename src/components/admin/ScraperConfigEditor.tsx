@@ -147,22 +147,22 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
   // Dynamic Theme Helper Classes
   const cardBg = isDark
     ? 'bg-slate-900/60 border-slate-800'
-    : 'bg-white border-slate-200 shadow-lg shadow-slate-200/50';
+    : 'bg-white border-slate-200 shadow-xl shadow-slate-200/60';
 
   const innerBoxBg = isDark
     ? 'bg-slate-950 border-slate-800'
-    : 'bg-slate-50 border-slate-200';
+    : 'bg-slate-100/80 border-slate-300';
 
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
-  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900 font-extrabold';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600 font-medium';
 
   const inputBg = isDark
     ? 'bg-slate-950 border-slate-800 text-cyan-300 focus:border-indigo-500'
-    : 'bg-slate-50 border-slate-300 text-indigo-950 font-bold focus:border-indigo-500';
+    : 'bg-white border-slate-300 text-indigo-950 font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20';
 
   const selectorInputBg = isDark
     ? 'bg-slate-950 border-slate-800 text-indigo-300 focus:border-indigo-500'
-    : 'bg-slate-50 border-slate-300 text-slate-900 font-bold focus:border-indigo-500';
+    : 'bg-white border-slate-300 text-slate-900 font-bold focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20';
 
   return (
     <div className="space-y-6">
@@ -171,7 +171,7 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className={`text-xl font-bold flex items-center gap-2 ${textPrimary}`}>
-              <Settings className="w-5 h-5 text-indigo-500" /> Dynamic Scraper Config & Selector Registry
+              <Settings className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Dynamic Scraper Config & Selector Registry
             </h2>
             <p className={`text-xs mt-1 ${textSecondary}`}>
               Zero-Code Maintenance: If 99acres or MagicBricks change their CSS layout, update selectors here without redeploying code.
@@ -180,21 +180,21 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
 
           <button
             onClick={handleSaveConfig}
-            className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all self-start md:self-auto"
+            className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-cyan-500 hover:opacity-90 rounded-xl text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all self-start md:self-auto"
           >
             <Save className="w-4 h-4" /> Save Portal Config
           </button>
         </div>
 
         {saveSuccess && (
-          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-600 dark:text-emerald-300 flex items-center gap-2 font-bold">
-            <Check className="w-4 h-4 text-emerald-500" /> {saveSuccess}
+          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2 font-bold">
+            <Check className="w-4 h-4 text-emerald-600" /> {saveSuccess}
           </div>
         )}
 
         {saveError && (
-          <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-600 dark:text-rose-300 flex items-center gap-2 font-bold">
-            <AlertCircle className="w-4 h-4 text-rose-500" /> {saveError}
+          <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2 font-bold">
+            <AlertCircle className="w-4 h-4 text-rose-600" /> {saveError}
           </div>
         )}
       </div>
@@ -203,7 +203,7 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Portal Tabs Sidebar */}
         <div className="space-y-2">
-          <span className={`text-xs font-semibold px-1 uppercase tracking-wider ${textSecondary}`}>Select Portal</span>
+          <span className={`text-xs font-bold px-1 uppercase tracking-wider ${textSecondary}`}>Select Portal</span>
           {configs.map((cfg) => {
             const isSelected = selectedPortal === cfg.portal_name;
             return (
@@ -214,17 +214,17 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
                   isSelected
                     ? isDark
                       ? 'bg-gradient-to-r from-indigo-900/50 to-slate-900 border-indigo-500/50 text-white shadow-md'
-                      : 'bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-500 text-white shadow-md'
+                      : 'bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-500 text-white font-bold shadow-md'
                     : isDark
                     ? 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                    : 'bg-white border-slate-200 text-slate-800 font-semibold hover:bg-indigo-50/60 shadow-sm'
                 }`}
               >
                 <div>
                   <p className="text-xs font-bold">{cfg.display_name}</p>
-                  <span className={`text-[10px] font-mono ${isSelected ? 'text-indigo-200' : textSecondary}`}>id: {cfg.portal_name}</span>
+                  <span className={`text-[10px] font-mono ${isSelected ? 'text-indigo-100 font-bold' : textSecondary}`}>id: {cfg.portal_name}</span>
                 </div>
-                <span className={`w-2 h-2 rounded-full ${cfg.is_active ? 'bg-emerald-400' : 'bg-slate-400'}`} />
+                <span className={`w-2.5 h-2.5 rounded-full ${cfg.is_active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
               </button>
             );
           })}
@@ -234,7 +234,7 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
         <div className={`lg:col-span-3 border rounded-3xl p-6 backdrop-blur-xl space-y-6 ${cardBg}`}>
           <div>
             <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${textPrimary}`}>
-              <Code className="w-4 h-4 text-cyan-500" /> Search URL Template
+              <Code className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> Search URL Template
             </h3>
             <input
               type="text"
@@ -242,7 +242,7 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
               onChange={(e) => handleUpdateTemplate(e.target.value)}
               className={`w-full p-3 border rounded-xl text-xs font-mono focus:outline-none ${inputBg}`}
             />
-            <p className={`text-[11px] mt-1 ${textSecondary}`}>Use <code className="text-indigo-500 font-bold">{'{city}'}</code> as dynamic city variable placeholder.</p>
+            <p className={`text-[11px] mt-1 ${textSecondary}`}>Use <code className="text-indigo-600 font-bold">{'{city}'}</code> as dynamic city variable placeholder.</p>
           </div>
 
           {/* Primary CSS Selectors Form */}
@@ -251,7 +251,7 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Object.entries(currentConfig.primary_selectors).map(([key, val]) => (
                 <div key={key}>
-                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${textSecondary}`}>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${textSecondary}`}>
                     {key.replace('_', ' ')}
                   </label>
                   <input
@@ -271,8 +271,8 @@ export const ScraperConfigEditor: React.FC<ScraperConfigEditorProps> = ({ isDark
             <div className={`p-4 border rounded-2xl font-mono text-xs space-y-2 ${innerBoxBg}`}>
               {Object.entries(currentConfig.fallback_selectors).map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between">
-                  <span className="text-indigo-500 font-bold">{k}:</span>
-                  <span className={textSecondary}>{v}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-extrabold">{k}:</span>
+                  <span className={isDark ? 'text-slate-300' : 'text-slate-900 font-bold'}>{v}</span>
                 </div>
               ))}
             </div>
