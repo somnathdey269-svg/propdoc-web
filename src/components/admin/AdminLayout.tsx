@@ -6,23 +6,23 @@ import {
   GitMerge, 
   Globe,
   BarChart3, 
-  LogOut, 
   Lock, 
   Key, 
   Mail, 
   Sparkles,
   Zap,
-  Moon,
-  Sun,
   ChevronLeft,
-  ChevronRight,
-  Menu
+  Menu,
+  Clock,
+  Sliders
 } from 'lucide-react';
 import SimpleScraperAssistant from './SimpleScraperAssistant';
 import WebsiteSourcesManager from './WebsiteSourcesManager';
 import ScraperConfigEditor from './ScraperConfigEditor';
 import MatchReviewQueue from './MatchReviewQueue';
 import PortalPriceMatrix from './PortalPriceMatrix';
+import { ScraperControlPanel } from './ScraperControlPanel';
+import { AdaptivePipelineManager } from './AdaptivePipelineManager';
 
 const SUPERADMIN_EMAIL = 'somnathdey269@gmail.com';
 const SUPERADMIN_PASS = 'Deevarsh@190521';
@@ -48,11 +48,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     return (localStorage.getItem('urbanx_admin_theme') as 'dark' | 'light') || 'dark';
   });
 
-  // Logout Confirmation Modal
-  const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
-
   // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<'assistant' | 'sources' | 'config' | 'queue' | 'matrix'>('assistant');
+  const [activeTab, setActiveTab] = useState<'assistant' | 'execution' | 'pipelines' | 'sources' | 'config' | 'queue' | 'matrix'>('assistant');
 
   useEffect(() => {
     localStorage.setItem('urbanx_admin_theme', theme);
@@ -76,16 +73,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
   const confirmLogout = () => {
     localStorage.removeItem('urbanx_superadmin_auth');
     setIsAuthenticated(false);
-    setShowLogoutModal(false);
     if (onClose) onClose();
   };
 
   // Navigation Items Definition
   const navItems = [
     { id: 'assistant', label: 'Easy Scraper Assistant', icon: Zap, color: 'text-cyan-400' },
-    { id: 'sources', label: 'Manage Website Sources', icon: Globe, color: 'text-amber-400' },
+    { id: 'execution', label: 'Execution Center & Live SSE', icon: Clock, color: 'text-rose-400' },
+    { id: 'pipelines', label: 'Adaptive Pipelines & Fallbacks', icon: Sliders, color: 'text-amber-400' },
+    { id: 'sources', label: 'Manage Website Sources', icon: Globe, color: 'text-emerald-400' },
     { id: 'config', label: 'Selector Configs', icon: Settings, color: 'text-purple-400' },
-    { id: 'queue', label: 'Review Matches', icon: GitMerge, color: 'text-emerald-400' },
+    { id: 'queue', label: 'Review Matches', icon: GitMerge, color: 'text-blue-400' },
     { id: 'matrix', label: 'Price Comparison Matrix', icon: BarChart3, color: 'text-indigo-400' },
   ] as const;
 
@@ -153,33 +151,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     );
   }
 
-  // Theme Styling Rules
   const isDark = theme === 'dark';
 
   return (
-    <div
-      className={`min-h-screen font-sans transition-colors duration-300 flex flex-col ${
-        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
-      }`}
-    >
+    <div className={`min-h-screen font-sans transition-colors duration-300 flex flex-col ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       {/* TOP HEADER BAR */}
-      <header
-        className={`sticky top-0 z-40 border-b px-6 py-3.5 flex items-center justify-between transition-colors ${
-          isDark
-            ? 'bg-slate-900/80 backdrop-blur-xl border-slate-800/80 text-white'
-            : 'bg-white/90 backdrop-blur-xl border-slate-200 text-slate-900 shadow-sm'
-        }`}
-      >
-        {/* Left Brand + Sidebar Toggle */}
+      <header className={`sticky top-0 z-40 border-b px-6 py-3.5 flex items-center justify-between transition-colors ${isDark ? 'bg-slate-900/80 backdrop-blur-xl border-slate-800/80 text-white' : 'bg-white/90 backdrop-blur-xl border-slate-200 text-slate-900 shadow-sm'}`}>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            className={`p-2 rounded-xl border transition-colors ${
-              isDark
-                ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
-            }`}
+            className={`p-2 rounded-xl border transition-colors ${isDark ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white' : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'}`}
           >
             {isSidebarCollapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -199,152 +180,53 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Right Actions (Day/Night Theme Toggle + User + Logout/Exit) */}
         <div className="flex items-center gap-3">
-          {/* Day / Night Theme Switcher */}
-          <button
-            onClick={toggleTheme}
-            className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 text-xs font-bold ${
-              isDark
-                ? 'bg-slate-950 border-slate-800 text-amber-400 hover:bg-slate-900'
-                : 'bg-slate-100 border-slate-200 text-indigo-600 hover:bg-slate-200'
-            }`}
-            title={`Switch to ${isDark ? 'Day (Light)' : 'Night (Dark)'} Mode`}
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
-            <span className="hidden sm:inline">{isDark ? 'Day Mode' : 'Night Mode'}</span>
+          <button onClick={toggleTheme} className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
+            {isDark ? '☀️ Day Mode' : '🌙 Night Mode'}
           </button>
-
-          {/* Logout Button */}
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            title="Logout"
-            className={`p-2.5 rounded-xl border transition-colors flex items-center gap-2 text-xs font-bold ${
-              isDark
-                ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/30'
-                : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-300'
-            }`}
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+          <button onClick={confirmLogout} className="px-4 py-2 rounded-xl bg-rose-500/20 text-rose-300 font-bold text-xs">
+            Logout
           </button>
         </div>
       </header>
 
-      {/* BODY WITH LEFT SIDEBAR + MAIN CONTENT */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* COLLAPSIBLE LEFT-HAND SIDEBAR */}
-        <aside
-          className={`transition-all duration-300 border-r flex flex-col justify-between p-3 z-30 ${
-            isSidebarCollapsed ? 'w-16' : 'w-64'
-          } ${
-            isDark
-              ? 'bg-slate-900/60 border-slate-800/80 backdrop-blur-xl'
-              : 'bg-white border-slate-200 text-slate-800 shadow-sm'
-          }`}
-        >
-          {/* Navigation Items */}
-          <div className="space-y-1.5">
-            {!isSidebarCollapsed && (
-              <p className="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                Scraper Navigation
-              </p>
-            )}
-
+      {/* BODY & SIDEBAR */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* SIDEBAR */}
+        <aside className={`border-r transition-all duration-300 ${isSidebarCollapsed ? 'w-16' : 'w-64'} ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <nav className="p-3 space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  title={isSidebarCollapsed ? item.label : undefined}
-                  className={`w-full p-3 rounded-2xl text-xs font-bold flex items-center gap-3 transition-all ${
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs font-bold transition-all ${
                     isActive
-                      ? isDark
-                        ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20'
-                        : 'bg-indigo-600 text-white shadow-md'
-                      : isDark
-                      ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-500/25'
+                      : isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800/60' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : item.color}`} />
-                  {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.color}`} />
+                  {!isSidebarCollapsed && <span>{item.label}</span>}
                 </button>
               );
             })}
-          </div>
-
-          {/* Sidebar Collapse Footer Toggle */}
-          <div className="pt-3 border-t border-slate-800/40">
-            <button
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className={`w-full p-2.5 rounded-xl border flex items-center justify-center gap-2 text-xs font-semibold transition-colors ${
-                isDark
-                  ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                  : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {isSidebarCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <>
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>Collapse Menu</span>
-                </>
-              )}
-            </button>
-          </div>
+          </nav>
         </aside>
 
-        {/* MAIN WORKSPACE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
-            {activeTab === 'assistant' && <SimpleScraperAssistant isDark={isDark} />}
-            {activeTab === 'sources' && <WebsiteSourcesManager isDark={isDark} />}
-            {activeTab === 'config' && <ScraperConfigEditor />}
-            {activeTab === 'queue' && <MatchReviewQueue />}
-            {activeTab === 'matrix' && <PortalPriceMatrix />}
-          </div>
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {activeTab === 'assistant' && <SimpleScraperAssistant />}
+          {activeTab === 'execution' && <ScraperControlPanel />}
+          {activeTab === 'pipelines' && <AdaptivePipelineManager />}
+          {activeTab === 'sources' && <WebsiteSourcesManager />}
+          {activeTab === 'config' && <ScraperConfigEditor />}
+          {activeTab === 'queue' && <MatchReviewQueue />}
+          {activeTab === 'matrix' && <PortalPriceMatrix />}
         </main>
       </div>
-
-      {/* LOGOUT CONFIRMATION POPUP MODAL */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xl p-4">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
-            <div className="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto">
-              <LogOut className="w-6 h-6" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-white">Log Out Superadmin?</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Are you sure you want to end your Superadmin session? You will need to re-authenticate with your password.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="w-1/2 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmLogout}
-                className="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-700 rounded-xl text-xs font-bold text-white shadow-lg shadow-rose-600/30 transition-all"
-              >
-                Confirm Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
-
-export default AdminLayout;
