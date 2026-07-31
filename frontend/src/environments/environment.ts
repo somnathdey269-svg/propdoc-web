@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  supabaseUrl: 'https://YOUR_PROJECT_REF.supabase.co',
-  supabaseAnonKey: 'YOUR_SUPABASE_ANON_KEY',
-  apiBaseUrl: 'http://localhost:8080',  // Spring API Gateway
+  supabaseUrl: 'https://xbetskuzmtvwlqfkwxb.supabase.co',
+  supabaseAnonKey: 'sb_publishable_QKOOCbRx0PyTloN3GXjdhQ_ZlVZfBJu',
+  apiBaseUrl: 'http://localhost:8080',
 };

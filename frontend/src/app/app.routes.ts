@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ShellComponent } from './layout/shell/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -12,7 +13,7 @@ export const routes: Routes = [
   // Shell layout (authenticated)
   {
     path: '',
-    loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),
+    component: ShellComponent,
     canActivate: [authGuard],
     children: [
 

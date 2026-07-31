@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  supabaseUrl: '${SUPABASE_URL}',
-  supabaseAnonKey: '${SUPABASE_ANON_KEY}',
-  apiBaseUrl: '${API_BASE_URL}',  // Railway/Render backend URL
+  supabaseUrl: 'https://xbetskuzmtvwlqfkwxb.supabase.co',
+  supabaseAnonKey: 'sb_publishable_QKOOCbRx0PyTloN3GXjdhQ_ZlVZfBJu',
+  apiBaseUrl: 'https://your-backend.railway.app',
 };
