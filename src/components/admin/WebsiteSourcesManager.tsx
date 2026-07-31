@@ -229,6 +229,7 @@ export const WebsiteSourcesManager: React.FC<WebsiteSourcesManagerProps> = ({ is
         <AddWebsiteModal
           onClose={() => setShowAddModal(false)}
           onSuccess={() => fetchWebsites()}
+          isDark={isDark}
         />
       )}
     </div>

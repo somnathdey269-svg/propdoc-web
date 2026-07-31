@@ -526,6 +526,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
         <AddWebsiteModal
           onClose={() => setShowAddWebsiteModal(false)}
           onSuccess={() => fetchWebsites()}
+          isDark={isDark}
         />
       )}
     </div>
