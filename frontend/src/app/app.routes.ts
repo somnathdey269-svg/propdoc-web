@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { UserPortalComponent } from './features/user-portal/user-portal.component';
+import { BuilderPortalComponent } from './features/builder/builder-portal.component';
 import { ShellComponent } from './layout/shell/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
@@ -11,13 +12,19 @@ export const routes: Routes = [
     component: UserPortalComponent
   },
 
-  // 2. AUTHENTICATION
+  // 2. BUILDER & DEVELOPER PORTAL (/builder)
+  {
+    path: 'builder',
+    component: BuilderPortalComponent
+  },
+
+  // 3. AUTHENTICATION (/auth)
   {
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
 
-  // 3. ENTERPRISE DATA ACQUISITION & SUPER ADMIN PLATFORM (/admin)
+  // 4. ENTERPRISE DATA ACQUISITION & SUPER ADMIN PLATFORM (/admin)
   {
     path: 'admin',
     component: ShellComponent,
