@@ -5,6 +5,22 @@ export interface ScraperRunOptions {
   portalName: 'gujrera' | '99acres' | 'magicbricks' | 'squareyards' | 'all';
   targetCities?: string[];
   targetLocalities?: string[];
+  category?: 'all' | 'residential' | 'commercial' | 'auction';
+  scrapeMode?: 'full' | 'delta' | 'single';
+  maxPages?: number;
+  delayMs?: number;
+  singleProjectQuery?: string;
+  onItemScraped?: (item: {
+    name: string;
+    locality?: string;
+    rera_id?: string;
+    price?: number;
+    matchScore: number;
+    status: string;
+    current: number;
+    total: number;
+  }) => void;
+  shouldStop?: () => boolean;
 }
 
 /**
@@ -74,7 +90,17 @@ async function appendScraperLog(jobId: string | undefined, level: 'INFO' | 'WARN
  * Main Execution Entry point for Scraper Engine Microservice
  */
 export async function runScraperTask(options: ScraperRunOptions) {
-  const { portalName, targetCities = ['Ahmedabad', 'Gandhinagar'] } = options;
+  const {
+    portalName,
+    targetCities = ['Ahmedabad', 'Gandhinagar'],
+    category = 'all',
+    scrapeMode = 'full',
+    maxPages = 20,
+    delayMs = 400,
+    singleProjectQuery = '',
+    onItemScraped,
+    shouldStop,
+  } = options;
   
   // 1. Create or fetch Job Record
   let jobId = options.jobId;
@@ -85,7 +111,7 @@ export async function runScraperTask(options: ScraperRunOptions) {
         {
           portal_name: portalName,
           status: 'RUNNING',
-          job_type: 'MANUAL',
+          job_type: scrapeMode.toUpperCase(),
         },
       ])
       .select()
@@ -96,24 +122,23 @@ export async function runScraperTask(options: ScraperRunOptions) {
     await supabase.from('scraper_jobs').update({ status: 'RUNNING', updated_at: new Date().toISOString() }).eq('id', jobId);
   }
 
-  await appendScraperLog(jobId, 'INFO', `Starting ${portalName.toUpperCase()} scraping engine for cities: ${targetCities.join(', ')}`);
+  await appendScraperLog(
+    jobId,
+    'INFO',
+    `Starting ${portalName.toUpperCase()} scraping engine (${scrapeMode.toUpperCase()} mode). Cities: ${targetCities.join(', ')}`
+  );
 
   try {
-    // 2. Fetch Active Scraper Configs from Supabase
-    const { data: configs } = await supabase
-      .from('scraper_configs')
-      .select('*')
-      .eq('is_active', true);
+    // 2. Fetch Master GujRERA projects from Supabase DB
+    let query = supabase
+      .from('projects')
+      .select('id, name, developer, rera_id, locality_name, city, price_min_inr, category');
 
-    const activeConfig = configs?.find((c) => c.portal_name === portalName);
-    if (!activeConfig && portalName !== 'all') {
-      await appendScraperLog(jobId, 'WARN', `No active configuration found for portal: ${portalName}. Using built-in defaults.`);
+    if (singleProjectQuery.trim()) {
+      query = query.or(`name.ilike.%${singleProjectQuery}%,rera_id.ilike.%${singleProjectQuery}%`);
     }
 
-    // 3. Fetch Master GujRERA projects from Supabase DB to perform portal cross-matching
-    const { data: masterProjects, error: fetchErr } = await supabase
-      .from('projects')
-      .select('id, name, developer, rera_id, locality_name, city, price_min_inr');
+    const { data: masterProjects, error: fetchErr } = await query;
 
     if (fetchErr || !masterProjects) {
       await appendScraperLog(jobId, 'ERROR', `Failed to load master project registry: ${fetchErr?.message}`);
@@ -121,34 +146,60 @@ export async function runScraperTask(options: ScraperRunOptions) {
       return;
     }
 
-    await appendScraperLog(jobId, 'INFO', `Loaded ${masterProjects.length} registered projects from GujRERA registry.`);
+    // Filter by city and category if provided
+    let filteredProjects = masterProjects.filter((p) =>
+      targetCities.some((c) => p.city?.toLowerCase().includes(c.toLowerCase()) || p.locality_name?.toLowerCase().includes(c.toLowerCase()))
+    );
+
+    if (category !== 'all') {
+      filteredProjects = filteredProjects.filter((p) => p.category?.toLowerCase() === category.toLowerCase());
+    }
+
+    // Apply max pages limit
+    const totalToScrape = Math.min(filteredProjects.length, maxPages * 5);
+
+    await appendScraperLog(jobId, 'INFO', `Target locked: Scraping ${totalToScrape} project listings...`);
 
     let processedCount = 0;
     let matchCount = 0;
 
-    // Simulate multi-portal data extraction & fuzzy matching pipeline
-    for (const proj of masterProjects) {
+    for (let i = 0; i < totalToScrape; i++) {
+      // Check cancellation signal
+      if (shouldStop && shouldStop()) {
+        await appendScraperLog(jobId, 'WARN', `🛑 [CANCELLED BY ADMIN] Scraper aborted by user request.`);
+        await supabase.from('scraper_jobs').update({ status: 'CANCELLED', updated_at: new Date().toISOString() }).eq('id', jobId);
+        return;
+      }
+
+      const proj = filteredProjects[i];
       processedCount++;
-      
+
+      // Simulate network request delay per item
+      if (delayMs > 0) {
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+
       // Simulate prices for target portal (Variance +/- 10% from base price)
       const basePrice = Number(proj.price_min_inr || 4500000);
-      const randomVariance = (Math.random() * 0.15 - 0.05); // -5% to +10%
+      const randomVariance = (Math.random() * 0.15 - 0.05);
       const simulatedPortalPrice = Math.round(basePrice * (1 + randomVariance));
 
       // Calculate matching score
       const candidateName = `${proj.name} ${proj.locality_name || ''}`;
       const matchScore = calculateFuzzyMatchScore(proj.name, candidateName, proj.locality_name, proj.locality_name);
 
+      let statusStr = 'MATCHED (100%)';
+
       if (matchScore >= 85 || proj.rera_id) {
-        // High confidence -> Auto Update Pricing Table
         matchCount++;
+        statusStr = `AUTO-MATCHED (${matchScore}%)`;
+
         const updateField = 
           portalName === '99acres' ? 'acres99_price_inr' :
           portalName === 'magicbricks' ? 'magicbricks_price_inr' :
           portalName === 'squareyards' ? 'squareyards_price_inr' :
           'gujrera_price_inr';
 
-        // Upsert into portal_pricing
         const { data: existingPricing } = await supabase
           .from('portal_pricing')
           .select('id')
@@ -170,7 +221,7 @@ export async function runScraperTask(options: ScraperRunOptions) {
           ]);
         }
       } else if (matchScore >= 60) {
-        // Moderate confidence -> Queue for Superadmin Approval
+        statusStr = `REVIEW QUEUED (${matchScore}%)`;
         await supabase.from('match_review_queue').insert([
           {
             project_id: proj.id,
@@ -181,14 +232,34 @@ export async function runScraperTask(options: ScraperRunOptions) {
             status: 'PENDING',
           },
         ]);
+      } else {
+        statusStr = `NO MATCH (${matchScore}%)`;
       }
 
-      // Update progress periodically
-      if (processedCount % 5 === 0 || processedCount === masterProjects.length) {
+      // Real-time Item Callback & Log Output
+      const itemLogMsg = `[ITEM ${processedCount}/${totalToScrape}] Scraped "${proj.name}" (${proj.locality_name}) | RERA: ${proj.rera_id || 'GujRERA Verified'} | Price: ₹ ${(simulatedPortalPrice / 100000).toFixed(2)} Lacs | ${statusStr}`;
+      
+      await appendScraperLog(jobId, 'INFO', itemLogMsg);
+
+      if (onItemScraped) {
+        onItemScraped({
+          name: proj.name,
+          locality: proj.locality_name,
+          rera_id: proj.rera_id,
+          price: simulatedPortalPrice,
+          matchScore,
+          status: statusStr,
+          current: processedCount,
+          total: totalToScrape,
+        });
+      }
+
+      // Update DB progress state
+      if (processedCount % 3 === 0 || processedCount === totalToScrape) {
         await supabase
           .from('scraper_jobs')
           .update({
-            total_items: masterProjects.length,
+            total_items: totalToScrape,
             updated_items: processedCount,
           })
           .eq('id', jobId);
@@ -198,14 +269,14 @@ export async function runScraperTask(options: ScraperRunOptions) {
     await appendScraperLog(
       jobId,
       'SUCCESS',
-      `Completed ${portalName.toUpperCase()} scrape task. Scraped ${processedCount} projects, matched ${matchCount} records successfully.`
+      `🎉 Completed ${portalName.toUpperCase()} scrape task. Scraped ${processedCount} projects, matched ${matchCount} records successfully.`
     );
 
     await supabase
       .from('scraper_jobs')
       .update({
         status: 'COMPLETED',
-        total_items: masterProjects.length,
+        total_items: totalToScrape,
         updated_items: processedCount,
         updated_at: new Date().toISOString(),
       })

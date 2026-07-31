@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Play, 
   Clock, 
   MapPin, 
   Terminal, 
@@ -8,10 +7,11 @@ import {
   AlertCircle, 
   RefreshCw,
   Zap,
-  Globe
+  Globe,
+  Sliders
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { runScraperTask } from '../../../scripts/scraper-microservice/scraperEngine';
+import { ScraperWizardModal } from './ScraperWizardModal';
 
 export const ScraperControlPanel: React.FC = () => {
   // Cities State
@@ -21,14 +21,17 @@ export const ScraperControlPanel: React.FC = () => {
   const [selectedCron, setSelectedCron] = useState<string>('0 2 * * 0'); // Default Sunday 2 AM
   const [customIntervalHours, setCustomIntervalHours] = useState<number>(24);
 
+  // Wizard Modal State
+  const [activeWizardPortal, setActiveWizardPortal] = useState<{
+    portalName: 'gujrera' | '99acres' | 'magicbricks' | 'squareyards' | 'all';
+    displayName: string;
+  } | null>(null);
+
   // Live Job & Progress
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [activePortal, setActivePortal] = useState<string | null>(null);
-  const [progress, setProgress] = useState<number>(0);
   const [logs, setLogs] = useState<{ id: string; level: string; message: string; created_at: string }[]>([]);
 
   // Statistics
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalProjects: 24,
     gujreraSynced: 24,
     acres99Synced: 21,
@@ -51,7 +54,6 @@ export const ScraperControlPanel: React.FC = () => {
     if (logData && logData.length > 0) {
       setLogs(logData);
     } else {
-      // Pre-populate with initial engine status if DB empty
       setLogs([
         { id: '1', level: 'SUCCESS', message: 'Scraper Engine Microservice initialized cleanly.', created_at: new Date().toISOString() },
         { id: '2', level: 'INFO', message: 'Target Scope locked to: Ahmedabad & Gandhinagar.', created_at: new Date().toISOString() },
@@ -69,58 +71,8 @@ export const ScraperControlPanel: React.FC = () => {
     }
   };
 
-  const triggerScraperRun = async (portal: 'gujrera' | '99acres' | 'magicbricks' | 'squareyards' | 'all') => {
-    setIsRunning(true);
-    setActivePortal(portal);
-    setProgress(10);
-
-    setLogs((prev) => [
-      { id: Date.now().toString(), level: 'INFO', message: `Triggering manual ${portal.toUpperCase()} scrape job...`, created_at: new Date().toISOString() },
-      ...prev,
-    ]);
-
-    // Progress animation loop
-    let currentProg = 10;
-    const interval = setInterval(() => {
-      currentProg += 15;
-      if (currentProg >= 90) clearInterval(interval);
-      setProgress(Math.min(90, currentProg));
-    }, 400);
-
-    try {
-      await runScraperTask({
-        portalName: portal,
-        targetCities,
-      });
-
-      clearInterval(interval);
-      setProgress(100);
-
-      setLogs((prev) => [
-        { id: Date.now().toString(), level: 'SUCCESS', message: `Scrape run for ${portal.toUpperCase()} completed successfully.`, created_at: new Date().toISOString() },
-        ...prev,
-      ]);
-
-      // Update local stat counters
-      setStats((prev) => ({
-        ...prev,
-        acres99Synced: Math.min(prev.totalProjects, prev.acres99Synced + 2),
-        magicbricksSynced: Math.min(prev.totalProjects, prev.magicbricksSynced + 3),
-      }));
-
-    } catch (e: any) {
-      clearInterval(interval);
-      setLogs((prev) => [
-        { id: Date.now().toString(), level: 'ERROR', message: `Scraper error: ${e.message}`, created_at: new Date().toISOString() },
-        ...prev,
-      ]);
-    } finally {
-      setTimeout(() => {
-        setIsRunning(false);
-        setActivePortal(null);
-        setProgress(0);
-      }, 1000);
-    }
+  const openWizard = (portalName: 'gujrera' | '99acres' | 'magicbricks' | 'squareyards' | 'all', displayName: string) => {
+    setActiveWizardPortal({ portalName, displayName });
   };
 
   return (
@@ -133,7 +85,7 @@ export const ScraperControlPanel: React.FC = () => {
               <Zap className="w-5 h-5 text-indigo-400" /> Scraper Execution & Control Panel
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Trigger background scraping tasks, configure automated cron schedules, and lock target city boundaries.
+              Trigger interactive scraping wizards, view real-time item extractions, and set automated cron schedules.
             </p>
           </div>
 
@@ -166,25 +118,6 @@ export const ScraperControlPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Progress Bar (If Running) */}
-      {isRunning && (
-        <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 animate-pulse">
-          <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold mb-2">
-            <span className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
-              Scraping {activePortal?.toUpperCase()}... Processing GujRERA records
-            </span>
-            <span>{progress}%</span>
-          </div>
-          <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-all duration-300 rounded-full"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* 1-Click Action Triggers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* GujRERA Master Trigger */}
@@ -200,11 +133,10 @@ export const ScraperControlPanel: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Official Gujarat regulatory approvals & details</p>
           </div>
           <button
-            disabled={isRunning}
-            onClick={() => triggerScraperRun('gujrera')}
-            className="w-full mt-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+            onClick={() => openWizard('gujrera', 'GujRERA Regulatory Registry')}
+            className="w-full mt-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Scrape GujRERA
+            <Sliders className="w-3.5 h-3.5" /> Configure & Scrape
           </button>
         </div>
 
@@ -221,11 +153,10 @@ export const ScraperControlPanel: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Commercial & residential pricing feed</p>
           </div>
           <button
-            disabled={isRunning}
-            onClick={() => triggerScraperRun('99acres')}
-            className="w-full mt-4 py-2.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+            onClick={() => openWizard('99acres', '99acres Listing Portal')}
+            className="w-full mt-4 py-2.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Scrape 99acres
+            <Sliders className="w-3.5 h-3.5" /> Configure & Scrape
           </button>
         </div>
 
@@ -242,11 +173,10 @@ export const ScraperControlPanel: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Marketplace pricing & launch listings</p>
           </div>
           <button
-            disabled={isRunning}
-            onClick={() => triggerScraperRun('magicbricks')}
-            className="w-full mt-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+            onClick={() => openWizard('magicbricks', 'MagicBricks Marketplace')}
+            className="w-full mt-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Scrape MagicBricks
+            <Sliders className="w-3.5 h-3.5" /> Configure & Scrape
           </button>
         </div>
 
@@ -263,11 +193,10 @@ export const ScraperControlPanel: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">New project launches & prices</p>
           </div>
           <button
-            disabled={isRunning}
-            onClick={() => triggerScraperRun('squareyards')}
-            className="w-full mt-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+            onClick={() => openWizard('squareyards', 'SquareYards Real Estate')}
+            className="w-full mt-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Scrape SquareYards
+            <Sliders className="w-3.5 h-3.5" /> Configure & Scrape
           </button>
         </div>
 
@@ -283,11 +212,10 @@ export const ScraperControlPanel: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Run complete GujRERA + portal price matrix</p>
           </div>
           <button
-            disabled={isRunning}
-            onClick={() => triggerScraperRun('all')}
-            className="w-full mt-4 py-2.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 hover:opacity-95 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50"
+            onClick={() => openWizard('all', 'All 4 Real Estate Portals')}
+            className="w-full mt-4 py-2.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 hover:opacity-95 rounded-xl text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all"
           >
-            <Play className="w-3.5 h-3.5 fill-current" /> Run Full Sync
+            <Sliders className="w-3.5 h-3.5" /> Configure Full Sync
           </button>
         </div>
       </div>
@@ -386,6 +314,18 @@ export const ScraperControlPanel: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* DEDICATED INTERACTIVE SCRAPER WIZARD MODAL */}
+      {activeWizardPortal && (
+        <ScraperWizardModal
+          portalName={activeWizardPortal.portalName}
+          portalDisplayName={activeWizardPortal.displayName}
+          onClose={() => setActiveWizardPortal(null)}
+          onJobComplete={() => {
+            fetchLatestLogs();
+          }}
+        />
+      )}
     </div>
   );
 };
