@@ -13,6 +13,10 @@ interface WebsiteConfig {
   is_active: boolean;
 }
 
+interface WebsiteSourcesManagerProps {
+  isDark?: boolean;
+}
+
 const DEFAULT_WEBSITES: WebsiteConfig[] = [
   {
     portal_name: 'gujrera',
@@ -48,7 +52,7 @@ const DEFAULT_WEBSITES: WebsiteConfig[] = [
   },
 ];
 
-export const WebsiteSourcesManager: React.FC = () => {
+export const WebsiteSourcesManager: React.FC<WebsiteSourcesManagerProps> = ({ isDark = true }) => {
   const [websites, setWebsites] = useState<WebsiteConfig[]>(DEFAULT_WEBSITES);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
@@ -70,16 +74,28 @@ export const WebsiteSourcesManager: React.FC = () => {
   const primaryWebsites = websites.filter((w) => w.source_role === 'PRIMARY');
   const secondaryWebsites = websites.filter((w) => w.source_role === 'SECONDARY');
 
+  // Dynamic Theme Helper Classes
+  const cardBg = isDark
+    ? 'bg-slate-900/60 border-slate-800'
+    : 'bg-white border-slate-200 shadow-lg shadow-slate-200/50';
+
+  const cardInnerBg = isDark
+    ? 'bg-slate-950/80 border-slate-800'
+    : 'bg-slate-50 border-slate-200';
+
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+
   return (
     <div className="space-y-6">
       {/* Banner */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl">
+      <div className={`border rounded-3xl p-6 backdrop-blur-xl ${cardBg}`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Globe className="w-5 h-5 text-indigo-400" /> Website Source Manager
+            <h2 className={`text-xl font-bold flex items-center gap-2 ${textPrimary}`}>
+              <Globe className="w-5 h-5 text-indigo-500" /> Website Source Manager
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Add or edit any target website. Primary sources create master project records, while Secondary sources match marketplace prices.
             </p>
           </div>
@@ -96,18 +112,18 @@ export const WebsiteSourcesManager: React.FC = () => {
       {/* Primary & Secondary Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* PRIMARY SOURCES BOX */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className={`border rounded-3xl p-6 backdrop-blur-xl space-y-4 ${cardBg}`}>
+          <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
             <div className="flex items-center gap-2">
-              <span className="p-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl">
+              <span className="p-2 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-xl">
                 <Shield className="w-4 h-4" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-white">PRIMARY SOURCES (Official Registries)</h3>
-                <p className="text-[11px] text-slate-400">Creates canonical master projects & RERA registration IDs.</p>
+                <h3 className={`text-base font-bold ${textPrimary}`}>PRIMARY SOURCES (Official Registries)</h3>
+                <p className={`text-[11px] ${textSecondary}`}>Creates canonical master projects & RERA registration IDs.</p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 rounded-full text-xs font-bold">
+            <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-full text-xs font-bold">
               {primaryWebsites.length} Sources
             </span>
           </div>
@@ -116,18 +132,20 @@ export const WebsiteSourcesManager: React.FC = () => {
             {primaryWebsites.map((w) => (
               <div
                 key={w.portal_name}
-                className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between gap-4"
+                className={`p-4 border rounded-2xl flex items-center justify-between gap-4 ${cardInnerBg}`}
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold text-white">{w.display_name}</p>
-                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[9px] font-bold">ACTIVE</span>
+                    <p className={`text-xs font-bold ${textPrimary}`}>{w.display_name}</p>
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded text-[9px] font-bold">ACTIVE</span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate max-w-sm">{w.search_url_template}</p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <span className="text-[10px] text-slate-400 font-medium">Cities:</span>
+                    <span className={`text-[10px] font-medium ${textSecondary}`}>Cities:</span>
                     {(w.target_cities || ['Ahmedabad', 'Gandhinagar']).map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-300 rounded text-[9px] font-semibold">
+                      <span key={c} className={`px-2 py-0.5 border rounded text-[9px] font-semibold ${
+                        isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-300 text-slate-700'
+                      }`}>
                         {c}
                       </span>
                     ))}
@@ -138,7 +156,9 @@ export const WebsiteSourcesManager: React.FC = () => {
                   href={w.search_url_template}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors shrink-0"
+                  className={`p-2 border rounded-xl transition-colors shrink-0 ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
@@ -148,18 +168,18 @@ export const WebsiteSourcesManager: React.FC = () => {
         </div>
 
         {/* SECONDARY SOURCES BOX */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className={`border rounded-3xl p-6 backdrop-blur-xl space-y-4 ${cardBg}`}>
+          <div className={`flex items-center justify-between border-b pb-3 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
             <div className="flex items-center gap-2">
-              <span className="p-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-xl">
+              <span className="p-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 rounded-xl">
                 <DollarSign className="w-4 h-4" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-white">SECONDARY SOURCES (Listing Portals)</h3>
-                <p className="text-[11px] text-slate-400">Cross-matches & compares live pricing against Primary projects.</p>
+                <h3 className={`text-base font-bold ${textPrimary}`}>SECONDARY SOURCES (Listing Portals)</h3>
+                <p className={`text-[11px] ${textSecondary}`}>Cross-matches & compares live pricing against Primary projects.</p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full text-xs font-bold">
+            <span className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-500 rounded-full text-xs font-bold">
               {secondaryWebsites.length} Sources
             </span>
           </div>
@@ -168,18 +188,20 @@ export const WebsiteSourcesManager: React.FC = () => {
             {secondaryWebsites.map((w) => (
               <div
                 key={w.portal_name}
-                className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between gap-4"
+                className={`p-4 border rounded-2xl flex items-center justify-between gap-4 ${cardInnerBg}`}
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold text-white">{w.display_name}</p>
-                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-[9px] font-bold">ACTIVE</span>
+                    <p className={`text-xs font-bold ${textPrimary}`}>{w.display_name}</p>
+                    <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded text-[9px] font-bold">ACTIVE</span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate max-w-sm">{w.search_url_template}</p>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <span className="text-[10px] text-slate-400 font-medium">Cities:</span>
+                    <span className={`text-[10px] font-medium ${textSecondary}`}>Cities:</span>
                     {(w.target_cities || ['Ahmedabad', 'Gandhinagar']).map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-300 rounded text-[9px] font-semibold">
+                      <span key={c} className={`px-2 py-0.5 border rounded text-[9px] font-semibold ${
+                        isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-300 text-slate-700'
+                      }`}>
                         {c}
                       </span>
                     ))}
@@ -190,7 +212,9 @@ export const WebsiteSourcesManager: React.FC = () => {
                   href={w.search_url_template}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors shrink-0"
+                  className={`p-2 border rounded-xl transition-colors shrink-0 ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>

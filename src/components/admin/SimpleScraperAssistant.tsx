@@ -23,6 +23,10 @@ interface WebsiteConfig {
   search_url_template: string;
 }
 
+interface SimpleScraperAssistantProps {
+  isDark?: boolean;
+}
+
 const DEFAULT_WEBSITES: WebsiteConfig[] = [
   { portal_name: 'gujrera', display_name: 'GujRERA Gujarat Registry', source_role: 'PRIMARY', search_url_template: 'https://gujrera.gujarat.gov.in' },
   { portal_name: '99acres', display_name: '99acres Real Estate', source_role: 'SECONDARY', search_url_template: 'https://www.99acres.com' },
@@ -30,7 +34,7 @@ const DEFAULT_WEBSITES: WebsiteConfig[] = [
   { portal_name: 'squareyards', display_name: 'SquareYards Property', source_role: 'SECONDARY', search_url_template: 'https://www.squareyards.com' },
 ];
 
-export const SimpleScraperAssistant: React.FC = () => {
+export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ isDark = true }) => {
   const [websites, setWebsites] = useState<WebsiteConfig[]>(DEFAULT_WEBSITES);
   const [selectedWebsite, setSelectedWebsite] = useState<WebsiteConfig>(DEFAULT_WEBSITES[0]);
   const [showAddWebsiteModal, setShowAddWebsiteModal] = useState<boolean>(false);
@@ -225,16 +229,37 @@ export const SimpleScraperAssistant: React.FC = () => {
     (p.developer || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Dynamic Theme Styling Helper Classes
+  const cardBg = isDark
+    ? 'bg-slate-900/60 border-slate-800'
+    : 'bg-white border-slate-200 shadow-lg shadow-slate-200/50';
+
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+  const textMuted = isDark ? 'text-slate-500' : 'text-slate-500';
+
+  const tableHeaderBg = isDark
+    ? 'bg-slate-950/80 border-slate-800 text-slate-400'
+    : 'bg-slate-100 border-slate-200 text-slate-700 font-bold';
+
+  const tableRowHover = isDark
+    ? 'hover:bg-slate-800/30'
+    : 'hover:bg-slate-50';
+
+  const inputBg = isDark
+    ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-indigo-500'
+    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500';
+
   return (
     <div className="space-y-6">
       {/* Target Website Selector Header */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
+      <div className={`border rounded-3xl p-6 backdrop-blur-xl space-y-4 ${cardBg}`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Globe className="w-5 h-5 text-indigo-400" /> Easy 2-Step Website Scraper Assistant
+            <h2 className={`text-xl font-bold flex items-center gap-2 ${textPrimary}`}>
+              <Globe className="w-5 h-5 text-indigo-500" /> Easy 2-Step Website Scraper Assistant
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Select a target website source, click Step 1 to find projects, then click Step 2 to fetch full prices & details.
             </p>
           </div>
@@ -248,42 +273,49 @@ export const SimpleScraperAssistant: React.FC = () => {
         </div>
 
         {/* Website Pills */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-800/80">
-          {websites.map((w) => (
-            <button
-              key={w.portal_name}
-              onClick={() => setSelectedWebsite(w)}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-                selectedWebsite.portal_name === w.portal_name
-                  ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg'
-                  : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {w.source_role === 'PRIMARY' ? (
-                <span className="p-1 bg-amber-500/20 text-amber-300 rounded text-[9px]">PRIMARY</span>
-              ) : (
-                <span className="p-1 bg-indigo-500/20 text-indigo-300 rounded text-[9px]">SECONDARY</span>
-              )}
-              {w.display_name}
-            </button>
-          ))}
+        <div className={`flex flex-wrap gap-2 pt-3 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'}`}>
+          {websites.map((w) => {
+            const isSelected = selectedWebsite.portal_name === w.portal_name;
+            return (
+              <button
+                key={w.portal_name}
+                onClick={() => setSelectedWebsite(w)}
+                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
+                    : isDark
+                    ? 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200'
+                    : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {w.source_role === 'PRIMARY' ? (
+                  <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-500 font-bold rounded text-[9px]">PRIMARY</span>
+                ) : (
+                  <span className="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-500 font-bold rounded text-[9px]">SECONDARY</span>
+                )}
+                {w.display_name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* LIVE RUNNING MONITOR & STOP BUTTON */}
       {statusMode !== 'IDLE' && (
-        <div className="p-5 bg-indigo-950/40 border border-indigo-500/40 rounded-3xl space-y-3 animate-pulse">
-          <div className="flex items-center justify-between text-xs font-bold text-indigo-200">
+        <div className={`p-5 rounded-3xl border space-y-3 animate-pulse ${
+          isDark ? 'bg-indigo-950/40 border-indigo-500/40' : 'bg-indigo-50 border-indigo-200'
+        }`}>
+          <div className="flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-200">
             <span className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
+              <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" />
               {statusMode === 'STEP1_SCANNING'
                 ? `Scanning ${selectedWebsite.display_name} for project listings...`
                 : `Fetching details & prices for checked projects...`}
             </span>
-            <span className="text-cyan-400 font-mono">{progressPct}%</span>
+            <span className="text-indigo-600 dark:text-cyan-400 font-mono">{progressPct}%</span>
           </div>
 
-          <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden">
+          <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-950' : 'bg-slate-200'}`}>
             <div
               className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-all duration-300 rounded-full"
               style={{ width: `${progressPct}%` }}
@@ -292,8 +324,8 @@ export const SimpleScraperAssistant: React.FC = () => {
 
           <div className="flex items-center justify-between pt-1">
             {currentProject && (
-              <span className="text-xs text-slate-300">
-                Current Project: <strong className="text-white">{currentProject.project_name}</strong> ({currentProject.locality_name})
+              <span className={`text-xs ${textSecondary}`}>
+                Current Project: <strong className={textPrimary}>{currentProject.project_name}</strong> ({currentProject.locality_name})
               </span>
             )}
 
@@ -306,9 +338,11 @@ export const SimpleScraperAssistant: React.FC = () => {
           </div>
 
           {/* Plain English Logs Output */}
-          <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl font-mono text-[11px] max-h-32 overflow-y-auto space-y-1">
+          <div className={`p-3 border rounded-xl font-mono text-[11px] max-h-32 overflow-y-auto space-y-1 ${
+            isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'
+          }`}>
             {statusLogs.map((l) => (
-              <div key={l.id} className={l.type === 'success' ? 'text-emerald-300' : l.type === 'error' ? 'text-rose-400 font-bold' : 'text-slate-300'}>
+              <div key={l.id} className={l.type === 'success' ? 'text-emerald-500 font-semibold' : l.type === 'error' ? 'text-rose-500 font-bold' : textSecondary}>
                 {l.message}
               </div>
             ))}
@@ -319,16 +353,16 @@ export const SimpleScraperAssistant: React.FC = () => {
       {/* EASY 2-STEP ACTION CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* STEP 1 CARD */}
-        <div className="bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between space-y-4">
+        <div className={`border rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between space-y-4 transition-all ${cardBg}`}>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold rounded-xl">
+              <span className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-500 text-xs font-bold rounded-xl">
                 STEP 1
               </span>
-              <span className="text-xs text-slate-500 font-semibold">{projectsList.length} Found</span>
+              <span className={`text-xs font-semibold ${textMuted}`}>{projectsList.length} Found</span>
             </div>
-            <h3 className="text-lg font-bold text-white">Scan Website to Find Projects</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className={`text-lg font-bold ${textPrimary}`}>Scan Website to Find Projects</h3>
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Scans <strong>{selectedWebsite.display_name}</strong> to list all registered project names and RERA IDs.
             </p>
           </div>
@@ -343,16 +377,16 @@ export const SimpleScraperAssistant: React.FC = () => {
         </div>
 
         {/* STEP 2 CARD */}
-        <div className="bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between space-y-4">
+        <div className={`border rounded-3xl p-6 backdrop-blur-xl flex flex-col justify-between space-y-4 transition-all ${cardBg}`}>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold rounded-xl">
+              <span className="px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-300 text-xs font-bold rounded-xl">
                 STEP 2
               </span>
-              <span className="text-xs text-emerald-400 font-semibold">{selectedIds.size} Checked</span>
+              <span className="text-xs text-emerald-500 font-semibold">{selectedIds.size} Checked</span>
             </div>
-            <h3 className="text-lg font-bold text-white">Get Full Details & Compare Prices</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className={`text-lg font-bold ${textPrimary}`}>Get Full Details & Compare Prices</h3>
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Gathers full floor plans, unit specs, and listing prices for the projects checked in the list below.
             </p>
           </div>
@@ -368,39 +402,45 @@ export const SimpleScraperAssistant: React.FC = () => {
       </div>
 
       {/* FOUND PROJECTS LIST TABLE */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className={`border rounded-3xl p-6 backdrop-blur-xl space-y-4 ${cardBg}`}>
+        <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 ${
+          isDark ? 'border-slate-800' : 'border-slate-200'
+        }`}>
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <h3 className={`text-base font-bold flex items-center gap-2 ${textPrimary}`}>
               📁 Found Projects List ({selectedWebsite.display_name})
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Check the projects you want to gather full details and prices for, then click Step 2 above.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search project name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none w-48"
+                className={`pl-8 pr-3 py-1.5 border rounded-xl text-xs focus:outline-none w-48 ${inputBg}`}
               />
             </div>
 
             <button
               onClick={handleSelectAll}
-              className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1"
+              className={`px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors ${
+                isDark ? 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+              }`}
             >
-              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> Check All
+              <CheckSquare className="w-3.5 h-3.5 text-emerald-500" /> Check All
             </button>
 
             <button
               onClick={handleClearAll}
-              className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 rounded-xl text-xs font-semibold"
+              className={`px-3 py-1.5 border rounded-xl text-xs font-semibold transition-colors ${
+                isDark ? 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-400' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600'
+              }`}
             >
               Uncheck All
             </button>
@@ -411,16 +451,16 @@ export const SimpleScraperAssistant: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className={`border-b text-[10px] uppercase tracking-wider ${tableHeaderBg}`}>
                 <th className="p-3 w-10 text-center">Check</th>
                 <th className="p-3">Project Name & Developer</th>
                 <th className="p-3">Locality & City</th>
-                <th className="p-3 text-amber-400">RERA Registration ID</th>
-                <th className="p-3 text-emerald-400">Listed Price</th>
+                <th className="p-3 text-amber-500 font-bold">RERA Registration ID</th>
+                <th className="p-3 text-emerald-500 font-bold">Listed Price</th>
                 <th className="p-3 text-right">Detail Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs">
+            <tbody className={`divide-y text-xs ${isDark ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
               {filteredProjects.map((p) => {
                 const id = p.id || p.project_name;
                 const isChecked = selectedIds.has(id);
@@ -430,31 +470,33 @@ export const SimpleScraperAssistant: React.FC = () => {
                     key={id}
                     onClick={() => handleToggleSelect(id)}
                     className={`cursor-pointer transition-colors ${
-                      isChecked ? 'bg-indigo-950/30' : 'hover:bg-slate-800/30'
+                      isChecked
+                        ? isDark ? 'bg-indigo-950/30' : 'bg-indigo-50/80'
+                        : tableRowHover
                     }`}
                   >
                     <td className="p-3 text-center">
                       {isChecked ? (
-                        <CheckSquare className="w-4 h-4 text-emerald-400 mx-auto" />
+                        <CheckSquare className="w-4 h-4 text-emerald-500 mx-auto" />
                       ) : (
-                        <SquareOutline className="w-4 h-4 text-slate-600 mx-auto" />
+                        <SquareOutline className="w-4 h-4 text-slate-400 mx-auto" />
                       )}
                     </td>
 
-                    <td className="p-3 font-bold text-white">
+                    <td className={`p-3 font-bold ${textPrimary}`}>
                       {p.project_name}
-                      <span className="block text-[10px] text-slate-400 font-normal">{p.developer}</span>
+                      <span className={`block text-[10px] font-normal ${textMuted}`}>{p.developer}</span>
                     </td>
 
-                    <td className="p-3 text-slate-300">
-                      {p.locality_name}, <span className="text-slate-500">{p.city}</span>
+                    <td className={`p-3 ${textSecondary}`}>
+                      {p.locality_name}, <span className={textMuted}>{p.city}</span>
                     </td>
 
-                    <td className="p-3 font-mono text-amber-300 font-bold text-[11px]">
+                    <td className="p-3 font-mono text-amber-500 font-bold text-[11px]">
                       {p.rera_id || 'GujRERA Verified'}
                     </td>
 
-                    <td className="p-3 font-mono font-bold text-emerald-400">
+                    <td className="p-3 font-mono font-bold text-emerald-500">
                       ₹ {(p.estimated_price_inr ? p.estimated_price_inr / 100000 : 0).toFixed(2)} Lacs
                     </td>
 
@@ -462,10 +504,10 @@ export const SimpleScraperAssistant: React.FC = () => {
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                           p.status === 'COMPLETED'
-                            ? 'bg-emerald-500/20 text-emerald-300'
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
                             : isChecked
-                            ? 'bg-indigo-500/20 text-indigo-300'
-                            : 'bg-slate-800 text-slate-400'
+                            ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-300'
+                            : isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-200 text-slate-600'
                         }`}
                       >
                         {p.status === 'COMPLETED' ? 'DETAILS UPDATED' : isChecked ? 'CHECKED FOR STEP 2' : 'FOUND'}

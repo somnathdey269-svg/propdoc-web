@@ -323,8 +323,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
         {/* MAIN WORKSPACE CONTENT */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-            {activeTab === 'assistant' && <SimpleScraperAssistant />}
-            {activeTab === 'sources' && <WebsiteSourcesManager />}
+            {activeTab === 'assistant' && <SimpleScraperAssistant isDark={isDark} />}
+            {activeTab === 'sources' && <WebsiteSourcesManager isDark={isDark} />}
             {activeTab === 'config' && <ScraperConfigEditor />}
             {activeTab === 'queue' && <MatchReviewQueue />}
             {activeTab === 'matrix' && <PortalPriceMatrix />}
