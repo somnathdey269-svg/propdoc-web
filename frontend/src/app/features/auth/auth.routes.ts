@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -16,4 +17,5 @@ import { Component } from '@angular/core';
 })
 export class LoginComponent {}
 
-export const AUTH_ROUTES = [{ path: 'login', component: LoginComponent }, { path: '', redirectTo: 'login', pathMatch: 'full' }];
+export const AUTH_ROUTES: Routes = [{ path: 'login', component: LoginComponent }, { path: '', redirectTo: 'login', pathMatch: 'full' }];
+

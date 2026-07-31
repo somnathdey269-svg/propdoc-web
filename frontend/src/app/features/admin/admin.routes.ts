@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -6,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class AdminComponent {}
 
-export const ADMIN_ROUTES = [{ path: '', component: AdminComponent }];
+export const ADMIN_ROUTES: Routes = [{ path: '', component: AdminComponent }];
+

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -6,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class WorkflowComponent {}
 
-export const WORKFLOW_ROUTES = [{ path: '', component: WorkflowComponent }];
+export const WORKFLOW_ROUTES: Routes = [{ path: '', component: WorkflowComponent }];
+

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -6,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class ReviewQueueComponent {}
 
-export const DATA_ROUTES = [{ path: '', component: ReviewQueueComponent }];
+export const DATA_ROUTES: Routes = [{ path: '', component: ReviewQueueComponent }];
+

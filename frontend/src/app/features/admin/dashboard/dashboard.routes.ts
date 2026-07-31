@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -28,4 +29,5 @@ import { Component } from '@angular/core';
 })
 export class DashboardComponent {}
 
-export const DASHBOARD_ROUTES = [{ path: '', component: DashboardComponent }];
+export const DASHBOARD_ROUTES: Routes = [{ path: '', component: DashboardComponent }];
+

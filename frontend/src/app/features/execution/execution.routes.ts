@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -11,4 +12,5 @@ import { Component } from '@angular/core';
 })
 export class ExecutionControlComponent {}
 
-export const EXECUTION_ROUTES = [{ path: '', component: ExecutionControlComponent }];
+export const EXECUTION_ROUTES: Routes = [{ path: '', component: ExecutionControlComponent }];
+

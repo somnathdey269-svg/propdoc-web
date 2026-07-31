@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Routes } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -6,4 +7,5 @@ import { Component } from '@angular/core';
 })
 export class UserPortalComponent {}
 
-export const USER_PORTAL_ROUTES = [{ path: '', component: UserPortalComponent }];
+export const USER_PORTAL_ROUTES: Routes = [{ path: '', component: UserPortalComponent }];
+
