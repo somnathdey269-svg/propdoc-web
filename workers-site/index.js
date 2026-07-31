@@ -1,4 +1,4 @@
-import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
+import { getAssetFromKV, mapRequestToAsset } from '@cloudflare/kv-asset-handler';
 
 addEventListener('fetch', (event) => {
   event.respondWith(handleEvent(event));
@@ -7,24 +7,45 @@ addEventListener('fetch', (event) => {
 async function handleEvent(event) {
   const url = new URL(event.request.url);
 
+  // Configure cache control: NEVER cache index.html or root requests
   const options = {
     cacheControl: {
       bypassKVCloudflareCache: true,
+      edgeTTL: 0,
+      browserTTL: 0
     },
   };
 
   try {
-    return await getAssetFromKV(event, options);
+    const response = await getAssetFromKV(event, options);
+
+    // If serving index.html directly, set anti-caching headers
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      const headers = new Headers(response.headers);
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
+    return response;
   } catch (e) {
     try {
-      // Single Page Application (SPA) fallback: route client-side paths like /admin to index.html
+      // Single Page Application (SPA) fallback: route client-side paths (/admin, /dashboard, etc.) to index.html
       const spaFallback = await getAssetFromKV(event, {
         ...options,
         mapRequestToAsset: (req) => new Request(`${new URL(req.url).origin}/index.html`, req),
       });
 
       const headers = new Headers(spaFallback.headers);
-      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
 
       return new Response(spaFallback.body, {
         status: 200,
