@@ -215,12 +215,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
             <span className="hidden sm:inline">{isDark ? 'Day Mode' : 'Night Mode'}</span>
           </button>
 
-          {/* User Email Badge */}
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold">{SUPERADMIN_EMAIL}</p>
-            <span className="text-[10px] text-indigo-500 font-medium">Superadmin Privilege</span>
-          </div>
-
           {/* Logout Button */}
           <button
             onClick={() => setShowLogoutModal(true)}
