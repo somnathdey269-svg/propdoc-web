@@ -140,31 +140,31 @@ export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = t
     if (!val) return <span className={isDark ? 'text-slate-600 font-normal' : 'text-slate-400 font-normal'}>--</span>;
     const inLacs = val / 100000;
     if (inLacs >= 100) {
-      return <span className="font-bold text-emerald-500">₹ {(inLacs / 100).toFixed(2)} Cr</span>;
+      return <span className={`font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>₹ {(inLacs / 100).toFixed(2)} Cr</span>;
     }
-    return <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>₹ {inLacs.toFixed(2)} L</span>;
+    return <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>₹ {inLacs.toFixed(2)} L</span>;
   };
 
   // Dynamic Theme Helper Classes
   const cardBg = isDark
     ? 'bg-slate-900/60 border-slate-800'
-    : 'bg-white border-slate-200 shadow-lg shadow-slate-200/50';
+    : 'bg-white border-slate-200 shadow-xl shadow-slate-200/60';
 
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
-  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900 font-extrabold';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600 font-medium';
   const textMuted = isDark ? 'text-slate-500' : 'text-slate-500';
 
   const tableHeaderBg = isDark
     ? 'bg-slate-950/80 border-slate-800 text-slate-400'
-    : 'bg-slate-100 border-slate-200 text-slate-700 font-bold';
+    : 'bg-slate-100/90 border-slate-200 text-slate-800 font-extrabold';
 
   const tableRowHover = isDark
     ? 'hover:bg-slate-800/30'
-    : 'hover:bg-slate-50';
+    : 'hover:bg-indigo-50/40';
 
   const inputBg = isDark
     ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-indigo-500'
-    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500';
+    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
 
   return (
     <div className="space-y-6">
@@ -173,7 +173,7 @@ export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = t
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className={`text-xl font-bold flex items-center gap-2 ${textPrimary}`}>
-              <BarChart3 className="w-5 h-5 text-indigo-500" /> Multi-Portal Pricing Intelligence Matrix
+              <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Multi-Portal Pricing Intelligence Matrix
             </h2>
             <p className={`text-xs mt-1 ${textSecondary}`}>
               Live side-by-side price comparisons across GujRERA, 99acres, MagicBricks, SquareYards, and BaankNet Auction listings.
@@ -213,14 +213,14 @@ export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = t
             <thead>
               <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${tableHeaderBg}`}>
                 <th className="p-4">Project & Locality</th>
-                <th className="p-4 text-amber-500 font-bold">GujRERA Reg</th>
-                <th className="p-4 text-indigo-500 font-bold">99acres</th>
-                <th className="p-4 text-rose-500 font-bold">MagicBricks</th>
-                <th className="p-4 text-emerald-500 font-bold">SquareYards</th>
-                <th className="p-4 text-cyan-600 dark:text-cyan-400 font-bold">BaankNet Auction</th>
+                <th className="p-4 text-amber-600 dark:text-amber-400 font-extrabold">GujRERA Reg</th>
+                <th className="p-4 text-indigo-600 dark:text-indigo-400 font-extrabold">99acres</th>
+                <th className="p-4 text-rose-600 dark:text-rose-400 font-extrabold">MagicBricks</th>
+                <th className="p-4 text-emerald-600 dark:text-emerald-400 font-extrabold">SquareYards</th>
+                <th className="p-4 text-cyan-700 dark:text-cyan-400 font-extrabold">BaankNet Auction</th>
               </tr>
             </thead>
-            <tbody className={`divide-y text-xs ${isDark ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
+            <tbody className={`divide-y text-xs ${isDark ? 'divide-slate-800/60' : 'divide-slate-200/80'}`}>
               {filteredData.map((item) => (
                 <tr key={item.id} className={`transition-colors ${tableRowHover}`}>
                   <td className="p-4">
@@ -235,7 +235,7 @@ export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = t
                     </div>
                   </td>
 
-                  <td className="p-4 font-mono font-bold text-amber-500">
+                  <td className="p-4 font-mono font-bold text-amber-600 dark:text-amber-400">
                     {formatPrice(item.gujrera_price)}
                   </td>
 
@@ -253,7 +253,7 @@ export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = t
 
                   <td className="p-4 font-mono">
                     {item.baanknet_price ? (
-                      <span className="font-bold text-cyan-600 dark:text-cyan-300">
+                      <span className="font-bold text-cyan-700 dark:text-cyan-300">
                         ₹ {(item.baanknet_price / 100000).toFixed(2)} L
                       </span>
                     ) : (
