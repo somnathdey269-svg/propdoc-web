@@ -4,6 +4,7 @@ import {
   Cpu, 
   Settings, 
   GitMerge, 
+  GitBranch,
   BarChart3, 
   LogOut, 
   Lock, 
@@ -15,6 +16,7 @@ import ScraperControlPanel from './ScraperControlPanel';
 import ScraperConfigEditor from './ScraperConfigEditor';
 import MatchReviewQueue from './MatchReviewQueue';
 import PortalPriceMatrix from './PortalPriceMatrix';
+import AdaptivePipelineManager from './AdaptivePipelineManager';
 
 const SUPERADMIN_EMAIL = 'somnathdey269@gmail.com';
 const SUPERADMIN_PASS = 'Deevarsh@190521';
@@ -33,7 +35,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
   const [authError, setAuthError] = useState('');
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'control' | 'config' | 'queue' | 'matrix'>('control');
+  const [activeTab, setActiveTab] = useState<'control' | 'pipeline' | 'config' | 'queue' | 'matrix'>('control');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +168,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
           </button>
 
           <button
+            onClick={() => setActiveTab('pipeline')}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+              activeTab === 'pipeline'
+                ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <GitBranch className="w-3.5 h-3.5" /> Adaptive Pipeline
+          </button>
+
+          <button
             onClick={() => setActiveTab('config')}
             className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
               activeTab === 'config'
@@ -228,6 +241,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
       {/* Main Content Body */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'control' && <ScraperControlPanel />}
+        {activeTab === 'pipeline' && <AdaptivePipelineManager />}
         {activeTab === 'config' && <ScraperConfigEditor />}
         {activeTab === 'queue' && <MatchReviewQueue />}
         {activeTab === 'matrix' && <PortalPriceMatrix />}

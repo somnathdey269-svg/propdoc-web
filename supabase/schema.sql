@@ -207,3 +207,76 @@ CREATE POLICY "Superadmin write match_review_queue" ON public.match_review_queue
   auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
 );
 
+-- 9. PASS 1 RECONNAISSANCE DISCOVERY STAGING REGISTRY
+CREATE TABLE IF NOT EXISTS public.scraper_discovery_staging (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    portal_name VARCHAR(100) NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
+    developer VARCHAR(255),
+    locality_name VARCHAR(255),
+    city VARCHAR(100) DEFAULT 'Ahmedabad',
+    rera_id VARCHAR(100),
+    detail_url TEXT,
+    estimated_price_inr NUMERIC(14, 2),
+    status VARCHAR(50) DEFAULT 'DISCOVERED', -- DISCOVERED, SELECTED_FOR_DEEP_SCRAPE, COMPLETED, SKIPPED
+    discovered_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 10. DYNAMIC ACTION NODE PIPELINE SEQUENCES
+CREATE TABLE IF NOT EXISTS public.scraper_action_pipelines (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    portal_name VARCHAR(100) UNIQUE NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    pipeline_nodes JSONB NOT NULL, -- Array of Action Nodes (NAVIGATE, INTERACT, DISCOVER_INDEX, TAB_DRILLDOWN, SCHEMA_EXTRACT, UPSERT)
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Seed Initial Action Node Pipelines for GujRERA Multi-Tab SPA & Major Portals
+INSERT INTO public.scraper_action_pipelines (portal_name, display_name, pipeline_nodes)
+VALUES
+(
+  'gujrera',
+  'GujRERA Multi-Tab Regulatory Pipeline',
+  '[
+    {"type": "NAVIGATE", "label": "Step 1: Open GujRERA Listing SPA", "target_url": "https://gujrera.gujarat.gov.in/#/home-p/registered-project-listing"},
+    {"type": "INTERACT", "label": "Step 2: Filter District", "selector": "#districtSelect", "action": "SELECT_OPTION", "value": "Ahmedabad"},
+    {"type": "DISCOVER_INDEX", "label": "Step 3: Extract Master Project Cards", "card_selector": "tr.project-row", "link_attribute": "href"},
+    {"type": "TAB_DRILLDOWN", "label": "Step 4: Drill Down Tabs 1 to 5", "detail_url_pattern": "/#/project-preview?id={id}", "tabs": ["Tab 1: Basic Info", "Tab 2: Promoter History", "Tab 3: Approved Plans & Units", "Tab 4: Financial Filings"]},
+    {"type": "UPSERT", "label": "Step 5: Upsert Enriched Record", "target_table": "projects"}
+  ]'::jsonb
+),
+(
+  '99acres',
+  '99acres Adaptive JSON-LD Pipeline',
+  '[
+    {"type": "NAVIGATE", "label": "Step 1: Fetch Search Endpoint", "target_url": "https://www.99acres.com/api/v2/search/property/in/{city}"},
+    {"type": "DISCOVER_INDEX", "label": "Step 2: Parse Listing Tuple JSON", "card_selector": ".projectTuple"},
+    {"type": "SCHEMA_EXTRACT", "label": "Step 3: Extract JSON-LD SEO Schema", "schema_selector": "script[type=\"application/ld+json\"]"},
+    {"type": "UPSERT", "label": "Step 4: Upsert Portal Pricing Matrix", "target_table": "portal_pricing"}
+  ]'::jsonb
+)
+ON CONFLICT (portal_name) DO UPDATE SET 
+  display_name = EXCLUDED.display_name,
+  pipeline_nodes = EXCLUDED.pipeline_nodes;
+
+-- Enable RLS for Staging & Pipelines
+ALTER TABLE public.scraper_discovery_staging ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scraper_action_pipelines ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public read scraper_discovery_staging" ON public.scraper_discovery_staging;
+CREATE POLICY "Allow public read scraper_discovery_staging" ON public.scraper_discovery_staging FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public read scraper_action_pipelines" ON public.scraper_action_pipelines;
+CREATE POLICY "Allow public read scraper_action_pipelines" ON public.scraper_action_pipelines FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Superadmin write scraper_discovery_staging" ON public.scraper_discovery_staging;
+CREATE POLICY "Superadmin write scraper_discovery_staging" ON public.scraper_discovery_staging FOR ALL USING (
+  auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
+);
+
+DROP POLICY IF EXISTS "Superadmin write scraper_action_pipelines" ON public.scraper_action_pipelines;
+CREATE POLICY "Superadmin write scraper_action_pipelines" ON public.scraper_action_pipelines FOR ALL USING (
+  auth.role() = 'service_role' OR (auth.jwt() ->> 'email') = 'somnathdey269@gmail.com'
+);
+
+
