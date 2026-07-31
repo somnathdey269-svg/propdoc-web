@@ -15,6 +15,10 @@ interface ProjectMatrixItem {
   baanknet_price: number | null;
 }
 
+interface PortalPriceMatrixProps {
+  isDark?: boolean;
+}
+
 const MOCK_MATRIX: ProjectMatrixItem[] = [
   {
     id: '1',
@@ -78,7 +82,7 @@ const MOCK_MATRIX: ProjectMatrixItem[] = [
   },
 ];
 
-export const PortalPriceMatrix: React.FC = () => {
+export const PortalPriceMatrix: React.FC<PortalPriceMatrixProps> = ({ isDark = true }) => {
   const [matrixData, setMatrixData] = useState<ProjectMatrixItem[]>(MOCK_MATRIX);
   const [searchQuery, setSearchQuery] = useState('');
   const [cityFilter, setCityFilter] = useState<string>('ALL');
@@ -133,24 +137,45 @@ export const PortalPriceMatrix: React.FC = () => {
   });
 
   const formatPrice = (val: number | null) => {
-    if (!val) return <span className="text-slate-600 font-normal">--</span>;
+    if (!val) return <span className={isDark ? 'text-slate-600 font-normal' : 'text-slate-400 font-normal'}>--</span>;
     const inLacs = val / 100000;
     if (inLacs >= 100) {
-      return <span className="font-semibold text-emerald-400">₹ {(inLacs / 100).toFixed(2)} Cr</span>;
+      return <span className="font-bold text-emerald-500">₹ {(inLacs / 100).toFixed(2)} Cr</span>;
     }
-    return <span className="font-semibold text-slate-200">₹ {inLacs.toFixed(2)} L</span>;
+    return <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>₹ {inLacs.toFixed(2)} L</span>;
   };
+
+  // Dynamic Theme Helper Classes
+  const cardBg = isDark
+    ? 'bg-slate-900/60 border-slate-800'
+    : 'bg-white border-slate-200 shadow-lg shadow-slate-200/50';
+
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+  const textMuted = isDark ? 'text-slate-500' : 'text-slate-500';
+
+  const tableHeaderBg = isDark
+    ? 'bg-slate-950/80 border-slate-800 text-slate-400'
+    : 'bg-slate-100 border-slate-200 text-slate-700 font-bold';
+
+  const tableRowHover = isDark
+    ? 'hover:bg-slate-800/30'
+    : 'hover:bg-slate-50';
+
+  const inputBg = isDark
+    ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-indigo-500'
+    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500';
 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl">
+      <div className={`border rounded-3xl p-6 backdrop-blur-xl ${cardBg}`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-indigo-400" /> Multi-Portal Pricing Intelligence Matrix
+            <h2 className={`text-xl font-bold flex items-center gap-2 ${textPrimary}`}>
+              <BarChart3 className="w-5 h-5 text-indigo-500" /> Multi-Portal Pricing Intelligence Matrix
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className={`text-xs mt-1 ${textSecondary}`}>
               Live side-by-side price comparisons across GujRERA, 99acres, MagicBricks, SquareYards, and BaankNet Auction listings.
             </p>
           </div>
@@ -158,20 +183,20 @@ export const PortalPriceMatrix: React.FC = () => {
           {/* Filters */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search project or developer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-52 sm:w-64"
+                className={`pl-9 pr-4 py-2 border rounded-xl text-xs focus:outline-none w-52 sm:w-64 ${inputBg}`}
               />
             </div>
 
             <select
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
-              className="p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 focus:outline-none"
+              className={`p-2 border rounded-xl text-xs font-semibold focus:outline-none ${inputBg}`}
             >
               <option value="ALL">All Cities</option>
               <option value="AHMEDABAD">Ahmedabad</option>
@@ -182,35 +207,35 @@ export const PortalPriceMatrix: React.FC = () => {
       </div>
 
       {/* Table Matrix */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden backdrop-blur-xl">
+      <div className={`border rounded-3xl overflow-hidden backdrop-blur-xl ${cardBg}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${tableHeaderBg}`}>
                 <th className="p-4">Project & Locality</th>
-                <th className="p-4 text-amber-400">GujRERA Reg</th>
-                <th className="p-4 text-indigo-400">99acres</th>
-                <th className="p-4 text-rose-400">MagicBricks</th>
-                <th className="p-4 text-emerald-400">SquareYards</th>
-                <th className="p-4 text-cyan-400">BaankNet Auction</th>
+                <th className="p-4 text-amber-500 font-bold">GujRERA Reg</th>
+                <th className="p-4 text-indigo-500 font-bold">99acres</th>
+                <th className="p-4 text-rose-500 font-bold">MagicBricks</th>
+                <th className="p-4 text-emerald-500 font-bold">SquareYards</th>
+                <th className="p-4 text-cyan-600 dark:text-cyan-400 font-bold">BaankNet Auction</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs">
+            <tbody className={`divide-y text-xs ${isDark ? 'divide-slate-800/60' : 'divide-slate-200'}`}>
               {filteredData.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
+                <tr key={item.id} className={`transition-colors ${tableRowHover}`}>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <Building className="w-4 h-4 text-slate-500 shrink-0" />
+                      <Building className={`w-4 h-4 shrink-0 ${textMuted}`} />
                       <div>
-                        <p className="font-bold text-white">{item.name}</p>
-                        <p className="text-[10px] text-slate-400">
-                          {item.developer} • <span className="text-slate-500">{item.locality}, {item.city}</span>
+                        <p className={`font-bold ${textPrimary}`}>{item.name}</p>
+                        <p className={`text-[10px] ${textSecondary}`}>
+                          {item.developer} • <span className={textMuted}>{item.locality}, {item.city}</span>
                         </p>
                       </div>
                     </div>
                   </td>
 
-                  <td className="p-4 font-mono font-bold text-amber-300">
+                  <td className="p-4 font-mono font-bold text-amber-500">
                     {formatPrice(item.gujrera_price)}
                   </td>
 
@@ -228,11 +253,11 @@ export const PortalPriceMatrix: React.FC = () => {
 
                   <td className="p-4 font-mono">
                     {item.baanknet_price ? (
-                      <span className="font-bold text-cyan-300">
+                      <span className="font-bold text-cyan-600 dark:text-cyan-300">
                         ₹ {(item.baanknet_price / 100000).toFixed(2)} L
                       </span>
                     ) : (
-                      <span className="text-slate-600">--</span>
+                      <span className={textMuted}>--</span>
                     )}
                   </td>
                 </tr>
