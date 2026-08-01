@@ -1,4 +1,4 @@
-import { getAssetFromKV, mapRequestToAsset } from '@cloudflare/kv-asset-handler';
+import { getAssetFromKV, serveSinglePageApp } from '@cloudflare/kv-asset-handler';
 
 addEventListener('fetch', (event) => {
   event.respondWith(handleEvent(event));
@@ -14,47 +14,30 @@ async function handleEvent(event) {
       edgeTTL: 0,
       browserTTL: 0
     },
+    mapRequestToAsset: serveSinglePageApp,
   };
 
   try {
-    const response = await getAssetFromKV(event, options);
+    const page = await getAssetFromKV(event, options);
 
-    // If serving index.html directly, set anti-caching headers
-    if (url.pathname === '/' || url.pathname === '/index.html') {
-      const headers = new Headers(response.headers);
+    const headers = new Headers(page.headers);
+    if (url.pathname === '/' || url.pathname === '/index.html' || !url.pathname.includes('.')) {
       headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
       headers.set('Pragma', 'no-cache');
       headers.set('Expires', '0');
-
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
     }
 
-    return response;
+    return new Response(page.body, {
+      status: page.status,
+      statusText: page.statusText,
+      headers,
+    });
   } catch (e) {
     try {
-      // Single Page Application (SPA) fallback: route client-side paths (/admin, /dashboard, etc.) to index.html
-      const spaFallback = await getAssetFromKV(event, {
-        ...options,
-        mapRequestToAsset: (req) => {
-          const indexUrl = new URL(req.url);
-          indexUrl.pathname = '/index.html';
-          return mapRequestToAsset(new Request(indexUrl.toString(), req));
-        },
+      const fallback = await getAssetFromKV(event, {
+        cacheControl: { bypassKVCloudflareCache: true, edgeTTL: 0, browserTTL: 0 }
       });
-
-      const headers = new Headers(spaFallback.headers);
-      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-      headers.set('Pragma', 'no-cache');
-      headers.set('Expires', '0');
-
-      return new Response(spaFallback.body, {
-        status: 200,
-        headers,
-      });
+      return fallback;
     } catch (err) {
       return new Response(`Resource not found: ${url.pathname}`, { status: 404 });
     }
