@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import AddWebsiteModal from './AddWebsiteModal';
-import ScraperWizardModal from './ScraperWizardModal';
+import SplitScreenWizard from './SplitScreenWizard';
 import { executeAcquisitionRun } from '../../../scripts/scraper-microservice/universalDataAcquisitionEngine';
 
 interface AcquisitionTarget {
@@ -53,7 +53,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
   const [targets, setTargets] = useState<AcquisitionTarget[]>(DEFAULT_TARGETS);
   const [selectedTarget, setSelectedTarget] = useState<AcquisitionTarget>(DEFAULT_TARGETS[0]);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
-  const [showWizardModal, setShowWizardModal] = useState<boolean>(false);
+  const [isSplitScreenActive, setIsSplitScreenActive] = useState<boolean>(false);
 
   // Extracted Data Vault State
   const [extractedRecords, setExtractedRecords] = useState<ExtractedRecord[]>([]);
@@ -200,6 +200,20 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
     );
   });
 
+  // IF FULL SPLIT-SCREEN WORKSPACE IS ACTIVE, RENDER FULL WORKSPACE
+  if (isSplitScreenActive) {
+    return (
+      <SplitScreenWizard
+        portalName={selectedTarget.portal_name}
+        portalDisplayName={selectedTarget.display_name}
+        baseUrl={selectedTarget.base_url}
+        onExit={() => setIsSplitScreenActive(false)}
+        onRunComplete={() => fetchExtractedRecords()}
+        theme={theme}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       
@@ -272,11 +286,11 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
                   <button
                     onClick={() => {
                       setSelectedTarget(target);
-                      setShowWizardModal(true);
+                      setIsSplitScreenActive(true);
                     }}
                     className="w-full py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[11px] rounded-xl flex items-center justify-center gap-1.5 transition-all"
                   >
-                    <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Setup Wizard
+                    <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Full 60/40 Split-Screen Setup
                   </button>
                 </div>
               </div>
@@ -363,7 +377,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* MODAL FOR ADDING NEW TARGET */}
       {showAddModal && (
         <AddWebsiteModal
           onClose={() => setShowAddModal(false)}
@@ -371,15 +385,6 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
             setShowAddModal(false);
             fetchTargets();
           }}
-        />
-      )}
-
-      {showWizardModal && (
-        <ScraperWizardModal
-          portalName={selectedTarget.portal_name}
-          portalDisplayName={selectedTarget.display_name}
-          onClose={() => setShowWizardModal(false)}
-          onJobComplete={fetchExtractedRecords}
         />
       )}
     </div>
