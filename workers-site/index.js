@@ -39,7 +39,11 @@ async function handleEvent(event) {
       // Single Page Application (SPA) fallback: route client-side paths (/admin, /dashboard, etc.) to index.html
       const spaFallback = await getAssetFromKV(event, {
         ...options,
-        mapRequestToAsset: (req) => new Request(`${new URL(req.url).origin}/index.html`, req),
+        mapRequestToAsset: (req) => {
+          const indexUrl = new URL(req.url);
+          indexUrl.pathname = '/index.html';
+          return mapRequestToAsset(new Request(indexUrl.toString(), req));
+        },
       });
 
       const headers = new Headers(spaFallback.headers);
