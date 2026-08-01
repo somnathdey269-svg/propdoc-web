@@ -78,11 +78,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
   const isDark = theme === 'dark';
 
   const navItems = [
-    { id: 'assistant', label: 'Easy Scraper Assistant', icon: Zap, color: 'text-cyan-400' },
+    { id: 'assistant', label: 'Universal Acquisition Hub', icon: Zap, color: 'text-cyan-400' },
     { id: 'execution', label: 'Execution Center & Live SSE', icon: Clock, color: 'text-rose-400' },
     { id: 'pipelines', label: 'Adaptive Pipelines & Fallbacks', icon: Sliders, color: 'text-amber-400' },
     { id: 'sources', label: 'Manage Website Sources', icon: Globe, color: 'text-emerald-400' },
-    { id: 'config', label: 'Selector Configs', icon: Settings, color: 'text-purple-400' },
+    { id: 'config', label: 'Selector Configs & Schemas', icon: Settings, color: 'text-purple-400' },
     { id: 'queue', label: 'Review Matches', icon: GitMerge, color: 'text-blue-400' },
     { id: 'matrix', label: 'Price Comparison Matrix', icon: BarChart3, color: 'text-indigo-400' },
   ] as const;
@@ -174,7 +174,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
                   <Sparkles className="w-3 h-3" /> Live Engine Active
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 block font-mono">Enterprise Data Acquisition v2.0</span>
+              <span className="text-[10px] text-slate-400 block font-mono">Enterprise Data Acquisition v3.0</span>
             </div>
           </div>
         </div>
@@ -241,3 +241,5 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     </div>
   );
 };
+
+export default AdminLayout;
