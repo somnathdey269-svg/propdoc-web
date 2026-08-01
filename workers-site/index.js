@@ -78,8 +78,8 @@ async function handleEvent(event) {
 
       // Return non-HTML assets directly
       return new Response(res.body, { status: res.status, headers: res.headers });
-    } catch (err: any) {
-      return new Response(`Proxy Error: ${err?.message || 'Failed to fetch'}`, { status: 500 });
+    } catch (err) {
+      return new Response(`Proxy Error: ${err ? err.message : 'Failed to fetch'}`, { status: 500 });
     }
   }
 
