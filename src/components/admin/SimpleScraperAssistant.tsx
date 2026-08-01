@@ -41,17 +41,10 @@ interface SimpleScraperAssistantProps {
   theme?: 'dark' | 'light';
 }
 
-const DEFAULT_TARGETS: AcquisitionTarget[] = [
-  { portal_name: 'gujrera', display_name: 'GujRERA Gujarat Registry', industry_category: 'Real Estate', base_url: 'https://gujrera.gujarat.gov.in', health_score: 98 },
-  { portal_name: '99acres', display_name: '99acres Real Estate', industry_category: 'Real Estate', base_url: 'https://www.99acres.com', health_score: 96 },
-  { portal_name: 'magicbricks', display_name: 'MagicBricks Marketplace', industry_category: 'Real Estate', base_url: 'https://www.magicbricks.com', health_score: 95 },
-  { portal_name: 'squareyards', display_name: 'SquareYards Property', industry_category: 'Real Estate', base_url: 'https://www.squareyards.com', health_score: 94 },
-];
-
 export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ theme = 'dark' }) => {
   const isDark = theme === 'dark';
-  const [targets, setTargets] = useState<AcquisitionTarget[]>(DEFAULT_TARGETS);
-  const [selectedTarget, setSelectedTarget] = useState<AcquisitionTarget>(DEFAULT_TARGETS[0]);
+  const [targets, setTargets] = useState<AcquisitionTarget[]>([]);
+  const [selectedTarget, setSelectedTarget] = useState<AcquisitionTarget | null>(null);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [isSplitScreenActive, setIsSplitScreenActive] = useState<boolean>(false);
 
@@ -74,21 +67,21 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
           id: d.id,
           portal_name: d.target_name || d.portal_name,
           display_name: d.display_name || d.target_name,
-          industry_category: d.industry_category || 'Real Estate',
+          industry_category: d.industry_category || 'General',
           base_url: d.base_url || '',
           health_score: 98,
         }));
-        const existingNames = new Set(mapped.map((m) => m.portal_name));
-        const combined = [...mapped];
-        DEFAULT_TARGETS.forEach((def) => {
-          if (!existingNames.has(def.portal_name)) {
-            combined.push(def);
-          }
-        });
-        setTargets(combined);
+        setTargets(mapped);
+        if (!selectedTarget) {
+          setSelectedTarget(mapped[0]);
+        }
+      } else {
+        setTargets([]);
+        setSelectedTarget(null);
       }
     } catch (err) {
-      console.warn('Using default targets:', err);
+      console.warn('Could not fetch targets:', err);
+      setTargets([]);
     }
   };
 
@@ -104,56 +97,11 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
       if (data && data.length > 0) {
         setExtractedRecords(data);
       } else {
-        setExtractedRecords([
-          {
-            id: '1',
-            target_id: 'gujrera',
-            source_url: 'https://gujrera.gujarat.gov.in',
-            record_hash: 'hash_a8f901',
-            payload: {
-              item_title: 'Adani Shantigram Water Lily',
-              developer: 'Adani Realty',
-              locality: 'Vaishno Devi, Ahmedabad',
-              price: 12500000,
-              pdf_document: 'sanctioned_plan.pdf'
-            },
-            quality_status: 'PASSED',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            target_id: 'gujrera',
-            source_url: 'https://gujrera.gujarat.gov.in',
-            record_hash: 'hash_b99e02',
-            payload: {
-              item_title: 'Godrej Garden City Cluster B',
-              developer: 'Godrej Properties',
-              locality: 'Jagatpur, Ahmedabad',
-              price: 8500000,
-              pdf_document: 'approval_godrej.pdf'
-            },
-            quality_status: 'PASSED',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '3',
-            target_id: '99acres',
-            source_url: 'https://www.99acres.com',
-            record_hash: 'hash_c11d03',
-            payload: {
-              item_title: 'Pacific Skydeck Towers',
-              developer: 'Pacific Group',
-              locality: 'Bodaldev, Ahmedabad',
-              price: 21000000,
-              pdf_document: 'brochure_skydeck.pdf'
-            },
-            quality_status: 'PASSED',
-            created_at: new Date().toISOString()
-          }
-        ]);
+        setExtractedRecords([]);
       }
     } catch (err) {
-      console.warn('Fallback records used:', err);
+      console.warn('Could not fetch records:', err);
+      setExtractedRecords([]);
     } finally {
       setIsLoadingRecords(false);
     }
@@ -201,7 +149,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
   });
 
   // IF FULL SPLIT-SCREEN WORKSPACE IS ACTIVE, RENDER FULL WORKSPACE
-  if (isSplitScreenActive) {
+  if (isSplitScreenActive && selectedTarget) {
     return (
       <SplitScreenWizard
         portalName={selectedTarget.portal_name}
@@ -227,7 +175,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
           </div>
           <h2 className="text-2xl font-black tracking-tight">Website Scraper & Data Collector</h2>
           <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Click "Run Extraction" on any website below to automatically gather structured data.
+            Configure and run data extraction for any website from scratch.
           </p>
         </div>
 
@@ -242,61 +190,79 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
       {/* 2. TARGET WEBSITES CARDS GRID */}
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-          <Globe className="w-4 h-4 text-cyan-400" /> Configured Target Websites
+          <Globe className="w-4 h-4 text-cyan-400" /> Configured Target Websites ({targets.length})
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {targets.map((target) => {
-            const isRunning = executingTarget === target.portal_name;
-            return (
-              <div
-                key={target.portal_name}
-                className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 transition-all ${
-                  isDark ? 'bg-slate-900/80 border-slate-800 text-white hover:border-slate-700' : 'bg-white border-slate-200 text-slate-900 shadow-sm'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold rounded-full">
-                      ● Active Target
-                    </span>
-                    <Globe className="w-4 h-4 text-slate-400" />
+        {targets.length === 0 ? (
+          <div className={`p-10 rounded-3xl border text-center space-y-4 ${isDark ? 'bg-slate-900/60 border-slate-800 text-slate-400' : 'bg-white border-slate-200 text-slate-600 shadow-sm'}`}>
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+              <Globe className="w-7 h-7" />
+            </div>
+            <div>
+              <h4 className="text-base font-extrabold text-white">No Target Websites Configured</h4>
+              <p className="text-xs text-slate-400 mt-1">Start by adding your first website address to begin extracting data.</p>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Your First Website
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {targets.map((target) => {
+              const isRunning = executingTarget === target.portal_name;
+              return (
+                <div
+                  key={target.portal_name}
+                  className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 transition-all ${
+                    isDark ? 'bg-slate-900/80 border-slate-800 text-white hover:border-slate-700' : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold rounded-full">
+                        ● Active Target
+                      </span>
+                      <Globe className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <h4 className="font-extrabold text-sm mb-1">{target.display_name}</h4>
+                    <p className="text-[11px] text-slate-400 font-mono truncate">{target.base_url}</p>
                   </div>
-                  <h4 className="font-extrabold text-sm mb-1">{target.display_name}</h4>
-                  <p className="text-[11px] text-slate-400 font-mono truncate">{target.base_url}</p>
-                </div>
 
-                <div className="space-y-2 pt-2 border-t border-slate-800/60">
-                  <button
-                    onClick={() => handleQuickRun(target)}
-                    disabled={isRunning}
-                    className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
-                  >
-                    {isRunning ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Extracting Data...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-3.5 h-3.5 fill-current" /> Run Extraction
-                      </>
-                    )}
-                  </button>
+                  <div className="space-y-2 pt-2 border-t border-slate-800/60">
+                    <button
+                      onClick={() => handleQuickRun(target)}
+                      disabled={isRunning}
+                      className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+                    >
+                      {isRunning ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Extracting Data...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-current" /> Run Extraction
+                        </>
+                      )}
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      setSelectedTarget(target);
-                      setIsSplitScreenActive(true);
-                    }}
-                    className="w-full py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[11px] rounded-xl flex items-center justify-center gap-1.5 transition-all"
-                  >
-                    <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Full 60/40 Split-Screen Setup
-                  </button>
+                    <button
+                      onClick={() => {
+                        setSelectedTarget(target);
+                        setIsSplitScreenActive(true);
+                      }}
+                      className="w-full py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[11px] rounded-xl flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-cyan-400" /> Full 60/40 Split-Screen Setup
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 3. EXTRACTED DATA RESULTS TABLE */}
@@ -305,7 +271,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-indigo-400" />
             <div>
-              <h3 className="text-base font-bold">Extracted Data Results</h3>
+              <h3 className="text-base font-bold">Extracted Data Results ({extractedRecords.length})</h3>
               <p className="text-xs text-slate-400">All captured records from recent extraction jobs</p>
             </div>
           </div>
@@ -345,33 +311,41 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40">
-              {filteredRecords.map((r) => {
-                const title = r.payload?.item_title || r.payload?.project_name || r.payload?.title || 'Extracted Item';
-                const loc = r.payload?.locality || r.payload?.developer || 'Gujarat';
-                const price = r.payload?.price ? `₹ ${(r.payload.price / 100000).toFixed(2)} Lacs` : 'Extracted';
-                const doc = r.payload?.pdf_document || 'Sanctioned_Plan.pdf';
+              {filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500">
+                    No extracted records found. Add a target website above and click "Run Extraction" to populate data.
+                  </td>
+                </tr>
+              ) : (
+                filteredRecords.map((r) => {
+                  const title = r.payload?.item_title || r.payload?.project_name || r.payload?.title || 'Extracted Item';
+                  const loc = r.payload?.locality || r.payload?.developer || 'Gujarat';
+                  const price = r.payload?.price ? `₹ ${(r.payload.price / 100000).toFixed(2)} Lacs` : 'Extracted';
+                  const doc = r.payload?.pdf_document || 'Sanctioned_Plan.pdf';
 
-                return (
-                  <tr key={r.id} className={`transition-colors ${isDark ? 'hover:bg-slate-950/60' : 'hover:bg-slate-50'}`}>
-                    <td className="p-3 font-bold text-white flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
-                      <span>{title}</span>
-                    </td>
-                    <td className="p-3 text-slate-300 font-medium">{loc}</td>
-                    <td className="p-3 text-emerald-400 font-mono font-bold">{price}</td>
-                    <td className="p-3">
-                      <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-300 text-[10px] font-bold rounded-full inline-flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Completed
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <span className="text-cyan-400 font-mono text-[11px] hover:underline cursor-pointer flex items-center gap-1">
-                        <FileText className="w-3.5 h-3.5" /> {doc}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr key={r.id} className={`transition-colors ${isDark ? 'hover:bg-slate-950/60' : 'hover:bg-slate-50'}`}>
+                      <td className="p-3 font-bold text-white flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
+                        <span>{title}</span>
+                      </td>
+                      <td className="p-3 text-slate-300 font-medium">{loc}</td>
+                      <td className="p-3 text-emerald-400 font-mono font-bold">{price}</td>
+                      <td className="p-3">
+                        <span className="px-2.5 py-0.5 bg-emerald-500/15 text-emerald-300 text-[10px] font-bold rounded-full inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Completed
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-cyan-400 font-mono text-[11px] hover:underline cursor-pointer flex items-center gap-1">
+                          <FileText className="w-3.5 h-3.5" /> {doc}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
