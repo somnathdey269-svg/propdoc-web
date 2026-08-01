@@ -3,29 +3,21 @@ import {
   ShieldCheck, 
   Cpu, 
   Settings, 
-  GitMerge, 
-  Globe,
-  BarChart3, 
-  Lock, 
-  Key, 
-  Mail, 
-  Sparkles,
+  Database,
   Zap,
   ChevronLeft,
   Menu,
-  Clock,
-  Sliders,
   Sun,
   Moon,
-  LogOut
+  LogOut,
+  Mail,
+  Key,
+  Lock,
+  Sparkles
 } from 'lucide-react';
 import SimpleScraperAssistant from './SimpleScraperAssistant';
-import WebsiteSourcesManager from './WebsiteSourcesManager';
 import ScraperConfigEditor from './ScraperConfigEditor';
 import MatchReviewQueue from './MatchReviewQueue';
-import PortalPriceMatrix from './PortalPriceMatrix';
-import { ScraperControlPanel } from './ScraperControlPanel';
-import { AdaptivePipelineManager } from './AdaptivePipelineManager';
 
 const SUPERADMIN_EMAIL = 'somnathdey269@gmail.com';
 const SUPERADMIN_PASS = 'Deevarsh@190521';
@@ -48,7 +40,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
     return (localStorage.getItem('urbanx_admin_theme') as 'dark' | 'light') || 'dark';
   });
 
-  const [activeTab, setActiveTab] = useState<'assistant' | 'execution' | 'pipelines' | 'sources' | 'config' | 'queue' | 'matrix'>('assistant');
+  const [activeTab, setActiveTab] = useState<'hub' | 'records' | 'settings'>('hub');
 
   useEffect(() => {
     localStorage.setItem('urbanx_admin_theme', theme);
@@ -65,7 +57,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Invalid Superadmin credentials. Access strictly restricted to somnathdey269@gmail.com.');
+      setAuthError('Invalid Superadmin credentials.');
     }
   };
 
@@ -78,13 +70,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
   const isDark = theme === 'dark';
 
   const navItems = [
-    { id: 'assistant', label: 'Universal Acquisition Hub', icon: Zap, color: 'text-cyan-400' },
-    { id: 'execution', label: 'Execution Center & Live SSE', icon: Clock, color: 'text-rose-400' },
-    { id: 'pipelines', label: 'Adaptive Pipelines & Fallbacks', icon: Sliders, color: 'text-amber-400' },
-    { id: 'sources', label: 'Manage Website Sources', icon: Globe, color: 'text-emerald-400' },
-    { id: 'config', label: 'Selector Configs & Schemas', icon: Settings, color: 'text-purple-400' },
-    { id: 'queue', label: 'Review Matches', icon: GitMerge, color: 'text-blue-400' },
-    { id: 'matrix', label: 'Price Comparison Matrix', icon: BarChart3, color: 'text-indigo-400' },
+    { id: 'hub', label: 'Data Acquisition Hub', icon: Zap, color: 'text-cyan-400' },
+    { id: 'records', label: 'Extracted Data Vault', icon: Database, color: 'text-emerald-400' },
+    { id: 'settings', label: 'Target Schema Settings', icon: Settings, color: 'text-purple-400' },
   ] as const;
 
   if (!isAuthenticated) {
@@ -96,8 +84,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
               <ShieldCheck className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Superadmin Gateway</h2>
-              <p className="text-xs text-slate-400">UrbanX Data Acquisition Platform</p>
+              <h2 className="text-2xl font-black tracking-tight">Superadmin Login</h2>
+              <p className="text-xs text-slate-400">Data Acquisition Engine</p>
             </div>
           </div>
 
@@ -118,13 +106,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="somnathdey269@gmail.com"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-medium focus:outline-none transition-all ${isDark ? 'bg-slate-950/60 border-slate-800 text-white placeholder-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500'}`}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-medium focus:outline-none transition-all ${isDark ? 'bg-slate-950/60 border-slate-800 text-white placeholder-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-indigo-500'}`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-400">Master Password</label>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-400">Password</label>
               <div className="relative">
                 <Key className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
                 <input
@@ -133,7 +121,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="••••••••••••"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-medium focus:outline-none transition-all ${isDark ? 'bg-slate-950/60 border-slate-800 text-white placeholder-slate-600 focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500'}`}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm font-medium focus:outline-none transition-all ${isDark ? 'bg-slate-950/60 border-slate-800 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-indigo-500'}`}
                 />
               </div>
             </div>
@@ -142,7 +130,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
               type="submit"
               className="w-full py-3.5 mt-2 bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 rounded-xl text-white font-bold text-sm shadow-xl shadow-cyan-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
             >
-              <Lock className="w-4 h-4" /> Authenticate Superadmin Access
+              <Lock className="w-4 h-4" /> Authenticate Access
             </button>
           </form>
         </div>
@@ -169,12 +157,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold tracking-tight">UrbanX Superadmin</h1>
+                <h1 className="text-base font-extrabold tracking-tight">Data Acquisition Hub</h1>
                 <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1 border ${isDark ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-300 text-emerald-700'}`}>
-                  <Sparkles className="w-3 h-3" /> Live Engine Active
+                  <Sparkles className="w-3 h-3" /> Ready
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 block font-mono">Enterprise Data Acquisition v3.0</span>
+              <span className="text-[10px] text-slate-400 block font-mono">Zero-Code Web Data Platform</span>
             </div>
           </div>
         </div>
@@ -200,7 +188,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
 
       {/* BODY & SIDEBAR */}
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`border-r transition-all duration-300 shrink-0 ${isSidebarCollapsed ? 'w-16' : 'w-64'} ${isDark ? 'bg-slate-950/80 border-slate-800/80' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <aside className={`border-r transition-all duration-300 shrink-0 ${isSidebarCollapsed ? 'w-16' : 'w-60'} ${isDark ? 'bg-slate-950/80 border-slate-800/80' : 'bg-white border-slate-200 shadow-sm'}`}>
           <nav className="p-3 space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -228,13 +216,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ onClose }) => {
         </aside>
 
         <main className={`flex-1 p-6 overflow-y-auto ${isDark ? 'bg-[#030712]' : 'bg-slate-100'}`}>
-          {activeTab === 'assistant' && <SimpleScraperAssistant theme={theme} />}
-          {activeTab === 'execution' && <ScraperControlPanel theme={theme} />}
-          {activeTab === 'pipelines' && <AdaptivePipelineManager theme={theme} />}
-          {activeTab === 'sources' && <WebsiteSourcesManager theme={theme} />}
-          {activeTab === 'config' && <ScraperConfigEditor theme={theme} />}
-          {activeTab === 'queue' && <MatchReviewQueue theme={theme} />}
-          {activeTab === 'matrix' && <PortalPriceMatrix theme={theme} />}
+          {activeTab === 'hub' && <SimpleScraperAssistant theme={theme} />}
+          {activeTab === 'records' && <MatchReviewQueue theme={theme} />}
+          {activeTab === 'settings' && <ScraperConfigEditor theme={theme} />}
         </main>
       </div>
 
