@@ -12,12 +12,10 @@ import {
   Database,
   Sparkles,
   RefreshCw,
-  FileText,
   MousePointer,
   Lock,
   Tag,
   Layers,
-  ChevronRight,
   ShieldCheck
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -161,7 +159,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex flex-col font-sans bg-slate-50 text-slate-900">
       
-      {/* 1. BRIGHT TOP NAVIGATION BAR */}
+      {/* 1. CLEAN TOP HEADER BAR (NO UNNECESSARY BUTTONS / STEPS CLUTTER) */}
       <header className="px-6 py-3.5 bg-white border-b border-slate-200/90 flex items-center justify-between shrink-0 shadow-sm relative z-10">
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-cyan-500 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
@@ -174,32 +172,8 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
                 60/40 Split-Screen Workspace
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Live Website Preview (Left 60%) • Guided Business Wizard (Right 40%)</p>
+            <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Live Interactive Web Mirror (Left 60%) • Guided Business Wizard (Right 40%)</p>
           </div>
-        </div>
-
-        {/* STEP PROGRESS BREADCRUMB BADGES */}
-        <div className="hidden lg:flex items-center gap-2">
-          {[
-            { s: 1, label: '1. Website URL' },
-            { s: 2, label: '2. Card Selection' },
-            { s: 3, label: '3. Data Fields' },
-            { s: 4, label: '4. Run Extraction' },
-          ].map((item, idx) => (
-            <React.Fragment key={item.s}>
-              {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-400" />}
-              <span className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                step === item.s
-                  ? 'bg-gradient-to-r from-indigo-600 via-cyan-600 to-purple-600 text-white shadow-md shadow-indigo-500/20 scale-105'
-                  : step > item.s
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 font-extrabold'
-                  : 'bg-slate-100 text-slate-500 border border-slate-200'
-              }`}>
-                {step > item.s && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
-                {item.label}
-              </span>
-            </React.Fragment>
-          ))}
         </div>
 
         <button
@@ -213,7 +187,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
       {/* 2. SPLIT-SCREEN MAIN CONTAINER (60% LEFT / 40% RIGHT) */}
       <div className="flex flex-1 overflow-hidden">
         
-        {/* LEFT PANEL (60% WIDTH): BRIGHT LIVE INTERACTIVE WEBSITE MIRROR */}
+        {/* LEFT PANEL (60% WIDTH): LIVE INTERACTIVE WEBSITE MIRROR */}
         <div className="w-full lg:w-[60%] border-r border-slate-200 flex flex-col justify-between p-5 space-y-4 bg-indigo-50/30">
           
           {/* SIMULATED BRIGHT BROWSER TOP BAR */}
@@ -226,12 +200,12 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
 
             <div className="flex-1 max-w-xl mx-auto px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2 font-mono text-xs text-slate-800">
               <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="truncate font-semibold">{targetUrl || 'https://www.example.com'}</span>
+              <span className="truncate font-semibold">{targetUrl || 'Type Web Address (URL) on right panel...'}</span>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
               <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-300 text-emerald-700 text-[10px] font-black rounded-full flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> LIVE CONNECTED
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> {targetUrl ? 'LIVE READY' : 'WAITING FOR URL'}
               </span>
               <button className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -239,72 +213,63 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
             </div>
           </div>
 
-          {/* LIVE WEBSITE PREVIEW CANVAS (BRIGHT WHITE) */}
-          <div className="flex-1 rounded-3xl border border-slate-200 bg-white p-6 overflow-y-auto space-y-4 relative shadow-lg">
+          {/* LIVE WEBSITE PREVIEW CANVAS */}
+          <div className="flex-1 rounded-3xl border border-slate-200 bg-white p-6 overflow-y-auto space-y-4 relative shadow-lg flex flex-col justify-between">
             
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2 text-xs font-black text-slate-800">
                 <MousePointer className="w-4 h-4 text-indigo-600" /> Live Target Mirror Preview
               </div>
-              <span className="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black rounded-xl flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> 14 Matching Item Cards Auto-Detected
+              {targetUrl && (
+                <span className="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-black rounded-xl flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> Live Stream Connected
+                </span>
+              )}
+            </div>
+
+            {/* BLANK STATE BEFORE TARGET URL OR DURING SETUP */}
+            {!targetUrl ? (
+              <div className="my-auto py-12 text-center space-y-3">
+                <div className="w-16 h-16 mx-auto rounded-3xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-inner">
+                  <Globe className="w-8 h-8" />
+                </div>
+                <h4 className="text-base font-black text-slate-900">Live Website Preview Area</h4>
+                <p className="text-xs text-slate-500 font-semibold max-w-sm mx-auto">
+                  Type your target Web Address (URL) on the right panel to load and display the live website preview.
+                </p>
+              </div>
+            ) : (
+              /* CLEAN BLANK/CARD OVERLAY DISPLAY WHEN URL IS ENTERED */
+              <div className="space-y-4 pt-2">
+                <div className="p-5 bg-gradient-to-br from-indigo-50/90 via-cyan-50/50 to-white border-2 border-indigo-600 rounded-3xl space-y-3 relative shadow-md">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-lg tracking-wider">
+                      TARGET WEB MIRROR: {websiteName || 'Active Website'}
+                    </span>
+                    <span className="px-2.5 py-0.5 bg-indigo-100 border border-indigo-200 text-indigo-800 text-[10px] font-mono font-black rounded-md">
+                      {targetUrl}
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-white border border-indigo-200 rounded-2xl space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-slate-700 font-bold">
+                      <span>Detected Structural Boundary</span>
+                      <span className="text-emerald-600 font-mono font-black">Live Connected</span>
+                    </div>
+                    <p className="text-slate-500 font-semibold">
+                      Click on any card or element in the live website stream to capture item schemas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="text-[11px] text-slate-500 flex items-center justify-between pt-3 border-t border-slate-100 font-semibold">
+              <span>Left side shows real-time website layout & visual boundary overlays.</span>
+              <span className="text-indigo-600 font-extrabold flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Universal Deterministic Engine
               </span>
             </div>
-
-            {/* REPEATING PROJECT CARDS DISPLAY IN LIVE MIRROR (BRIGHT LIGHT STYLE) */}
-            <div className="space-y-4 pt-2">
-              
-              {/* CARD 1 (HIGHLIGHTED SELECTION BOUNDARY) */}
-              <div className="p-5 bg-gradient-to-br from-indigo-50/90 via-cyan-50/50 to-white border-2 border-indigo-600 rounded-3xl space-y-3 relative shadow-md transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-lg tracking-wider shadow-sm">
-                    SELECTED ITEM CONTAINER #1
-                  </span>
-                  <span className="px-2.5 py-0.5 bg-indigo-100 border border-indigo-200 text-indigo-800 text-[10px] font-mono font-black rounded-md">
-                    ID: REF-88492
-                  </span>
-                </div>
-
-                <h4 className="text-lg font-black text-slate-900 tracking-tight">Adani Shantigram Water Lily</h4>
-                
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-indigo-100">
-                  <span className="text-emerald-600 font-black font-mono text-base">₹ 1.25 Cr</span>
-                  <span className="text-slate-700 font-bold">Vaishno Devi, Ahmedabad</span>
-                </div>
-
-                <div className="p-2.5 bg-white border border-indigo-200 rounded-xl text-xs text-indigo-700 font-extrabold hover:underline flex items-center gap-2 cursor-pointer font-mono shadow-sm">
-                  <FileText className="w-4 h-4 text-indigo-600" /> Sanctioned_Layout_Plan_WaterLily.pdf
-                </div>
-              </div>
-
-              {/* CARD 2 */}
-              <div className="p-5 bg-slate-50/90 border border-slate-200/90 rounded-3xl space-y-2 hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-mono font-bold">REF-88493</span>
-                  <span className="text-slate-600 text-xs font-bold">Jagatpur, Ahmedabad</span>
-                </div>
-                <h4 className="text-sm font-black text-slate-800">Godrej Garden City Cluster B</h4>
-                <p className="text-emerald-600 font-black font-mono text-xs">₹ 85.0 Lacs</p>
-              </div>
-
-              {/* CARD 3 */}
-              <div className="p-5 bg-slate-50/90 border border-slate-200/90 rounded-3xl space-y-2 hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-mono font-bold">REF-88494</span>
-                  <span className="text-slate-600 text-xs font-bold">Bodaldev, Ahmedabad</span>
-                </div>
-                <h4 className="text-sm font-black text-slate-800">Pacific Skydeck Towers</h4>
-                <p className="text-emerald-600 font-black font-mono text-xs">₹ 2.10 Cr</p>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1 font-semibold">
-            <span>Visual boundary overlays automatically sync with questionnaire clicks.</span>
-            <span className="text-indigo-600 font-extrabold flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Deterministic Engine Active
-            </span>
           </div>
         </div>
 
@@ -318,7 +283,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
               <div className="space-y-6">
                 <div className="p-5 bg-gradient-to-br from-indigo-50 via-cyan-50/40 to-white border border-indigo-200 rounded-3xl space-y-1.5 shadow-sm">
                   <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
-                    <HelpCircle className="w-4.5 h-4.5 text-indigo-600" /> Step 1: Target Website Address
+                    <HelpCircle className="w-4.5 h-4.5 text-indigo-600" /> Step 1 of 4: Target Website Address
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-semibold">
                     Enter the website name and public URL you want to extract structured data from.
@@ -377,7 +342,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
               <div className="space-y-6">
                 <div className="p-5 bg-gradient-to-br from-indigo-50 via-cyan-50/40 to-white border border-indigo-200 rounded-3xl space-y-1.5 shadow-sm">
                   <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
-                    <MousePointer className="w-4.5 h-4.5 text-indigo-600" /> Step 2: Select Card Boundary
+                    <MousePointer className="w-4.5 h-4.5 text-indigo-600" /> Step 2 of 4: Select Card Boundary
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-semibold">
                     Click on any item card on the left preview screen to lock recurring item boundaries.
@@ -400,7 +365,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
               <div className="space-y-6">
                 <div className="p-5 bg-gradient-to-br from-indigo-50 via-cyan-50/40 to-white border border-indigo-200 rounded-3xl space-y-1.5 shadow-sm">
                   <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
-                    <Database className="w-4.5 h-4.5 text-indigo-600" /> Step 3: Information to Save
+                    <Database className="w-4.5 h-4.5 text-indigo-600" /> Step 3 of 4: Information to Save
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-semibold">
                     Select which data fields to extract into your database.

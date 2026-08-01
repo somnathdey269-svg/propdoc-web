@@ -10,7 +10,11 @@ import {
   Sliders,
   CheckCircle2,
   Building2,
-  FileText
+  FileText,
+  MousePointer,
+  ArrowRight,
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import SplitScreenWizard from './SplitScreenWizard';
@@ -41,7 +45,6 @@ interface SimpleScraperAssistantProps {
 }
 
 export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ theme = 'light' }) => {
-  const isDark = theme === 'dark';
   const [targets, setTargets] = useState<AcquisitionTarget[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<AcquisitionTarget | null>(null);
   const [isSplitScreenActive, setIsSplitScreenActive] = useState<boolean>(false);
@@ -167,31 +170,95 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
   return (
     <div className="space-y-6 max-w-6xl mx-auto font-sans">
       
-      {/* 1. TOP HEADER BANNER (BRIGHT WHITE & VIBRANT ACCENTS) */}
-      <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
-        isDark ? 'bg-slate-900 border-slate-800 text-white shadow-xl' : 'bg-white border-slate-200/90 text-slate-900 shadow-sm'
-      }`}>
+      {/* 1. TOP HEADER BANNER */}
+      <div className="p-6 rounded-3xl border border-slate-200/90 bg-white text-slate-900 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-              <Zap className="w-3 h-3 inline mr-1 text-indigo-600" /> Simple Data Acquisition
+              <Zap className="w-3 h-3 inline mr-1 text-indigo-600" /> Universal Acquisition Platform
             </span>
           </div>
           <h2 className="text-2xl font-black tracking-tight text-slate-900">Website Scraper & Data Collector</h2>
           <p className="text-xs text-slate-500 font-semibold mt-1">
-            Configure and run data extraction for any website from scratch in full 60/40 split-screen.
+            Configure and run data extraction for any website using our 60/40 Split-Screen Wizard.
           </p>
         </div>
 
         <button
           onClick={handleAddNewWebsite}
-          className="px-5 py-3.5 bg-gradient-to-r from-indigo-600 via-cyan-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/25 text-white font-black text-xs rounded-2xl shadow-md hover:scale-[1.02] transition-all flex items-center gap-2 self-start sm:self-auto shrink-0"
+          className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 via-cyan-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/25 text-white font-black text-xs rounded-2xl shadow-md hover:scale-[1.02] transition-all flex items-center gap-2 self-start sm:self-auto shrink-0"
         >
           <Plus className="w-4 h-4" /> Add New Website
         </button>
       </div>
 
-      {/* 2. TARGET WEBSITES CARDS GRID */}
+      {/* 2. VISUAL 4-STEP PROCESS GUIDE (SHOWCASING STEPS ON 1ST SCREEN) */}
+      <div className="p-6 rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/70 via-cyan-50/40 to-white shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-indigo-900 font-black text-sm">
+            <Sparkles className="w-4.5 h-4.5 text-indigo-600" /> How It Works — 4 Simple Steps to Extract Data
+          </div>
+          <span className="text-[11px] text-indigo-700 font-extrabold">Zero Code Required</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+          
+          {/* STEP 1 */}
+          <div className="p-4 bg-white border border-indigo-100 rounded-2xl space-y-2 shadow-sm relative">
+            <div className="w-7 h-7 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow">
+              1
+            </div>
+            <h4 className="font-black text-xs text-slate-900 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-indigo-600" /> Enter Web Address
+            </h4>
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+              Enter the target website name & public URL you want to extract data from.
+            </p>
+          </div>
+
+          {/* STEP 2 */}
+          <div className="p-4 bg-white border border-indigo-100 rounded-2xl space-y-2 shadow-sm relative">
+            <div className="w-7 h-7 rounded-xl bg-cyan-600 text-white font-black text-xs flex items-center justify-center shadow">
+              2
+            </div>
+            <h4 className="font-black text-xs text-slate-900 flex items-center gap-1.5">
+              <MousePointer className="w-3.5 h-3.5 text-cyan-600" /> Select Card Boundary
+            </h4>
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+              Click any item card on the live mirror. The engine auto-detects all matching cards!
+            </p>
+          </div>
+
+          {/* STEP 3 */}
+          <div className="p-4 bg-white border border-indigo-100 rounded-2xl space-y-2 shadow-sm relative">
+            <div className="w-7 h-7 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow">
+              3
+            </div>
+            <h4 className="font-black text-xs text-slate-900 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-purple-600" /> Pick Data Fields
+            </h4>
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+              Select which details to save into your database (Title, Price, PDF Documents).
+            </p>
+          </div>
+
+          {/* STEP 4 */}
+          <div className="p-4 bg-white border border-indigo-100 rounded-2xl space-y-2 shadow-sm relative">
+            <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow">
+              4
+            </div>
+            <h4 className="font-black text-xs text-slate-900 flex items-center gap-1.5">
+              <Play className="w-3.5 h-3.5 text-emerald-600 fill-current" /> Auto-Extract Data
+            </h4>
+            <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+              Run the extraction job and view extracted records saved to your Data Vault.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 3. TARGET WEBSITES CARDS GRID */}
       <div>
         <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
           <Globe className="w-4 h-4 text-indigo-600" /> Configured Target Websites ({targets.length})
@@ -210,7 +277,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
               onClick={handleAddNewWebsite}
               className="px-6 py-3 bg-gradient-to-r from-indigo-600 via-cyan-600 to-purple-600 text-white font-black text-xs rounded-2xl shadow-md hover:scale-[1.02] transition-all inline-flex items-center gap-2"
             >
-              <Plus className="w-4 h-4" /> Add Your First Website
+              <Plus className="w-4 h-4" /> Add Your First Website <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         ) : (
@@ -267,7 +334,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
         )}
       </div>
 
-      {/* 3. EXTRACTED DATA RESULTS TABLE */}
+      {/* 4. EXTRACTED DATA RESULTS TABLE */}
       <div className="p-6 rounded-3xl border border-slate-200/90 bg-white text-slate-900 shadow-sm transition-all">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2">
