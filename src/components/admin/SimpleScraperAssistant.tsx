@@ -13,7 +13,6 @@ import {
   FileText
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import AddWebsiteModal from './AddWebsiteModal';
 import SplitScreenWizard from './SplitScreenWizard';
 import { executeAcquisitionRun } from '../../../scripts/scraper-microservice/universalDataAcquisitionEngine';
 
@@ -45,7 +44,6 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
   const isDark = theme === 'dark';
   const [targets, setTargets] = useState<AcquisitionTarget[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<AcquisitionTarget | null>(null);
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [isSplitScreenActive, setIsSplitScreenActive] = useState<boolean>(false);
 
   // Extracted Data Vault State
@@ -72,12 +70,8 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
           health_score: 98,
         }));
         setTargets(mapped);
-        if (!selectedTarget) {
-          setSelectedTarget(mapped[0]);
-        }
       } else {
         setTargets([]);
-        setSelectedTarget(null);
       }
     } catch (err) {
       console.warn('Could not fetch targets:', err);
@@ -139,6 +133,11 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
     }
   };
 
+  const handleAddNewWebsite = () => {
+    setSelectedTarget(null);
+    setIsSplitScreenActive(true);
+  };
+
   const filteredRecords = extractedRecords.filter((r) => {
     const title = r.payload?.item_title || r.payload?.project_name || r.payload?.title || '';
     const loc = r.payload?.locality || r.payload?.developer || '';
@@ -149,13 +148,16 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
   });
 
   // IF FULL SPLIT-SCREEN WORKSPACE IS ACTIVE, RENDER FULL WORKSPACE
-  if (isSplitScreenActive && selectedTarget) {
+  if (isSplitScreenActive) {
     return (
       <SplitScreenWizard
-        portalName={selectedTarget.portal_name}
-        portalDisplayName={selectedTarget.display_name}
-        baseUrl={selectedTarget.base_url}
-        onExit={() => setIsSplitScreenActive(false)}
+        portalName={selectedTarget?.portal_name || ''}
+        portalDisplayName={selectedTarget?.display_name || ''}
+        baseUrl={selectedTarget?.base_url || ''}
+        onExit={() => {
+          setIsSplitScreenActive(false);
+          fetchTargets();
+        }}
         onRunComplete={() => fetchExtractedRecords()}
         theme={theme}
       />
@@ -180,7 +182,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
         </div>
 
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={handleAddNewWebsite}
           className="px-5 py-3 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/20 hover:scale-[1.02] transition-all flex items-center gap-2 self-start sm:self-auto shrink-0"
         >
           <Plus className="w-4 h-4" /> Add New Website
@@ -203,7 +205,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
               <p className="text-xs text-slate-400 mt-1">Start by adding your first website address to begin extracting data.</p>
             </div>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleAddNewWebsite}
               className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" /> Add Your First Website
@@ -314,7 +316,7 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
               {filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-500">
-                    No extracted records found. Add a target website above and click "Run Extraction" to populate data.
+                    No extracted records found. Click "+ Add New Website" above to launch split-screen setup and extract data.
                   </td>
                 </tr>
               ) : (
@@ -351,16 +353,6 @@ export const SimpleScraperAssistant: React.FC<SimpleScraperAssistantProps> = ({ 
         </div>
       </div>
 
-      {/* MODAL FOR ADDING NEW TARGET */}
-      {showAddModal && (
-        <AddWebsiteModal
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            setShowAddModal(false);
-            fetchTargets();
-          }}
-        />
-      )}
     </div>
   );
 };
