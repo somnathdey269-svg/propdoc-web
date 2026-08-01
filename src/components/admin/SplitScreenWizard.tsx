@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, 
   Play, 
@@ -46,6 +46,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
   // Iframe state
   const [iframeKey, setIframeKey] = useState<number>(0);
   const [isIframeLoading, setIsIframeLoading] = useState<boolean>(true);
+  const [clickedElementInfo, setClickedElementInfo] = useState<string | null>(null);
 
   // Selected Fields
   const [capturedFields, setCapturedFields] = useState<Array<{ name: string; type: string; sample: string }>>([
@@ -62,6 +63,27 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
   const [logs, setLogs] = useState<Array<{ id: string; message: string; type: 'info' | 'success' | 'error' }>>([]);
   const cancelRef = useRef<boolean>(false);
 
+  // Listen for iframe element click messages
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'UD_ELEMENT_CLICKED') {
+        const text = e.data.text?.trim();
+        if (text) {
+          setClickedElementInfo(`Selected Element: "${text}" (${e.data.tagName})`);
+          if (step === 3) {
+            const label = text.substring(0, 35) || 'Captured Field';
+            setCapturedFields((prev) => [
+              ...prev,
+              { name: label, type: 'TEXT', sample: text.substring(0, 50) }
+            ]);
+          }
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [step]);
+
   const handleAddField = () => {
     const names = ['Category Name', 'Item Location', 'Contact Email', 'Quantity'];
     const name = names[Math.floor(Math.random() * names.length)];
@@ -76,6 +98,8 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
     setIsIframeLoading(true);
     setIframeKey((prev) => prev + 1);
   };
+
+  const proxySrc = targetUrl ? `/api/proxy-stream?url=${encodeURIComponent(targetUrl)}` : '';
 
   const handleSaveAndStartExtraction = async () => {
     const slug = portalName || websiteName.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'target_site';
@@ -197,7 +221,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
       {/* 2. SPLIT-SCREEN MAIN CONTAINER (60% LEFT / 40% RIGHT) */}
       <div className="flex flex-1 overflow-hidden">
         
-        {/* LEFT PANEL (60% WIDTH): LIVE WEBSITE PREVIEW IFRAME CANVAS */}
+        {/* LEFT PANEL (60% WIDTH): LIVE WEBSITE PROXY STREAM CANVAS */}
         <div className="w-full lg:w-[60%] flex flex-col justify-between p-4 space-y-3 bg-slate-100">
           
           {/* SIMULATED BRIGHT BROWSER TOP BAR */}
@@ -236,7 +260,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
             </div>
           </div>
 
-          {/* LIVE IFRAME PREVIEW CONTAINER */}
+          {/* LIVE PROXY IFRAME PREVIEW CONTAINER */}
           <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-2 overflow-hidden relative shadow-md flex flex-col">
             
             <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-xs shrink-0">
@@ -244,27 +268,26 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
                 <MousePointer className="w-4 h-4 text-indigo-600" /> Live Interactive Website Stream
               </div>
               <span className="px-2.5 py-0.5 bg-emerald-50 border border-emerald-300 text-emerald-700 text-[10px] font-black rounded-full flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> LIVE CONNECTED
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> PROXY ACTIVE
               </span>
             </div>
 
-            {/* REAL IFRAME EMBED WITH LOADING INDICATOR */}
+            {/* REAL IFRAME EMBED VIA SERVER PROXY WITH LOADING INDICATOR */}
             <div className="flex-1 relative w-full h-full overflow-hidden rounded-xl bg-slate-50">
               {targetUrl ? (
                 <>
                   {isIframeLoading && (
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm space-y-3">
                       <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-                      <p className="text-xs font-black text-slate-700">Connecting to {targetUrl}...</p>
+                      <p className="text-xs font-black text-slate-700">Bypassing Frame Restrictions & Connecting to {targetUrl}...</p>
                     </div>
                   )}
                   <iframe
                     key={iframeKey}
-                    src={targetUrl}
-                    title="Live Website Mirror"
+                    src={proxySrc}
+                    title="Live Website Mirror Stream"
                     onLoad={() => setIsIframeLoading(false)}
                     className="w-full h-full border-0 rounded-xl bg-white"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                   />
                 </>
               ) : (
@@ -282,9 +305,9 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
           </div>
 
           <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1 font-semibold">
-            <span>Left side renders live target website mirror stream.</span>
-            <span className="text-indigo-600 font-extrabold flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Universal Engine Stream
+            <span className="truncate max-w-md">{clickedElementInfo || 'Click any element in the live website stream to select fields.'}</span>
+            <span className="text-indigo-600 font-extrabold flex items-center gap-1 shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" /> Proxy Stream Active
             </span>
           </div>
         </div>
@@ -364,7 +387,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
                     <MousePointer className="w-4.5 h-4.5 text-indigo-600" /> Step 2 of 4: Select Card Boundary
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-semibold">
-                    Click on any item card on the left preview screen to lock recurring item boundaries.
+                    Click on any item card on the left live mirror to lock recurring item boundaries.
                   </p>
                 </div>
 
@@ -387,7 +410,7 @@ export const SplitScreenWizard: React.FC<SplitScreenWizardProps> = ({
                     <Database className="w-4.5 h-4.5 text-indigo-600" /> Step 3 of 4: Information to Save
                   </div>
                   <p className="text-xs text-slate-600 leading-relaxed font-semibold">
-                    Select which data fields to extract into your database.
+                    Click any element on the left live stream to capture its field, or click "+ Add Custom Data Field" below.
                   </p>
                 </div>
 
